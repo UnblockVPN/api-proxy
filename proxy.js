@@ -1,3 +1,7 @@
+// api-proxy running on vercel
+// Author: David Awatere
+// proxy.js
+
 const express = require('express');
 const axios = require('axios');
 

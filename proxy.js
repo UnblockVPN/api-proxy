@@ -22,13 +22,13 @@ app.get('/rest/v1/relays', async (req, res) => {
         console.log(`Making GET request to ${url}`);
         const response = await axios.get(url);
 
-        // Assuming the response is an array of objects, each containing 'relay_data'
+        // Checking if response.data is an array and has items
         if (Array.isArray(response.data) && response.data.length > 0) {
-            // Extracting 'relay_data' from the first item in the array as an example
-            const relayData = response.data[0].relay_data;
+            // Extracting 'bridge' object from 'relay_data' of the first item in the array
+            const bridges = response.data.map(item => item.relay_data.bridge);
 
-            // You can process or transform relayData as needed here
-            res.json(relayData);
+            // Process or transform bridges as needed here
+            res.json(bridges);
         } else {
             console.error('Unexpected response structure:', response.data);
             res.status(500).send('Unexpected response structure');
@@ -38,6 +38,7 @@ app.get('/rest/v1/relays', async (req, res) => {
         res.status(500).send('Error while processing request');
     }
 });
+
 
 
 // New POST proxy endpoint for /rest/v1/submit-voucher

@@ -68,6 +68,21 @@ const jsonData = [
 ];
 
 
+
+// Predefined list of API addresses
+const apiAddresses = [
+    "45.83.223.196:443",
+    "193.138.218.71:444",
+    "185.65.134.66:444",
+    "185.65.135.117:444",
+    "91.90.44.10:444"
+    // Add more addresses as needed
+];
+
+app.get('/app/v1/api-addrs', (req, res) => {
+    res.json(apiAddresses);
+});
+
 app.get('/app/v1/releases/:platform/:version', (req, res) => {
     const { platform, version } = req.params;
 

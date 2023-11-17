@@ -23,6 +23,32 @@ function transformData(sbData) {
     }
 }
 
+app.get('/app/v1/releases/:platform/:version', async (req, res) => {
+    try {
+        const { platform, version } = req.params;
+
+        // Fetch the release information from your database
+        // This is a placeholder - implement the actual database query logic
+        const releaseInfo = await getReleaseInfo(platform, version);
+
+        if (releaseInfo) {
+            res.json(releaseInfo);
+        } else {
+            res.status(404).send('Release information not found');
+        }
+    } catch (error) {
+        console.error('Error:', error.message);
+        res.status(500).send('Internal Server Error');
+    }
+});
+
+async function getReleaseInfo(platform, version) {
+    // Implement the logic to fetch release information from the database
+    // This function should return the object with the release information
+    // or null if not found
+}
+
+
 // Proxy endpoint for GET requests
 app.get('/rest/v1/relays', async (req, res) => {
     console.log('Received GET request for /rest/v1/relays');

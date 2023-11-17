@@ -29,33 +29,33 @@ const jsonData = [
         "platform": "android",
         "version": 2023.1,
         "supported": true,
-        "latest": 2023.7,
-        "latest_stable": 2023.7,
-        "latest_beta": "2023.4-beta"
+        "latest": "2023.7",
+        "latest_stable": "2023.7",
+        "latest_beta": "2023.7"
       },
       {
         "platform": "macos",
         "version": 2023.1,
         "supported": true,
-        "latest": 2023.1,
-        "latest_stable": 2023.1,
-        "latest_beta": "2023.1"
+        "latest": "2023.7",
+        "latest_stable": "2023.7",
+        "latest_beta": "2023.7"
       },
       {
         "platform": "windows",
         "version": 2023.1,
         "supported": true,
-        "latest": 2023.1,
-        "latest_stable": 2023.1,
-        "latest_beta": "2023.1"
+        "latest": "2023.7",
+        "latest_stable": "2023.7",
+        "latest_beta": "2023.7"
       },
       {
         "platform": "ios",
         "version": 2023.1,
         "supported": true,
-        "latest": 2023.1,
-        "latest_stable": 2023.1,
-        "latest_beta": "2023.1"
+        "latest": "2023.7",
+        "latest_stable": "2023.7",
+        "latest_beta": "2023.7"
       }
 ];
 

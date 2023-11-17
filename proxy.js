@@ -22,16 +22,23 @@ app.get('/rest/v1/relays', async (req, res) => {
         console.log(`Making GET request to ${url}`);
         const response = await axios.get(url);
 
-        // Transform the SB response to match the MV structure
-        const transformedResponse = response.data['relay-data']['0'];
+        // Assuming the response is an array of objects, each containing 'relay_data'
+        if (Array.isArray(response.data) && response.data.length > 0) {
+            // Extracting 'relay_data' from the first item in the array as an example
+            const relayData = response.data[0].relay_data;
 
-        console.log('Successfully retrieved and transformed data');
-        res.json(transformedResponse);
+            // You can process or transform relayData as needed here
+            res.json(relayData);
+        } else {
+            console.error('Unexpected response structure:', response.data);
+            res.status(500).send('Unexpected response structure');
+        }
     } catch (error) {
         console.error('Error in GET /rest/v1/relays:', error.message);
         res.status(500).send('Error while processing request');
     }
 });
+
 
 // New POST proxy endpoint for /rest/v1/submit-voucher
 app.post('/rest/v1/submit-voucher', async (req, res) => {

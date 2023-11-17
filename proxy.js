@@ -4,13 +4,13 @@
 
 const express = require('express');
 const axios = require('axios');
-
 const app = express();
+const port = process.env.PORT || 3000;
 
 // Middleware to parse JSON body for POST requests
 app.use(express.json());
 
-const port = process.env.PORT || 3000;
+
 
 // Function to transform the data from Supabase format to the required format
 function transformData(sbData) {
@@ -23,22 +23,75 @@ function transformData(sbData) {
     }
 }
 
-app.get('/app/v1/releases/:platform/:version', async (req, res) => {
-    try {
-        const { platform, version } = req.params;
+// JSON data
+const jsonData = [
+    // ... your JSON data ...
+    {
+        "platform": "android",
+        "version": 2023,
+        "supported": true,
+        "latest": 2023.7,
+        "latest_stable": 2023.7,
+        "latest_beta": ""
+      },
+      {
+        "platform": "android",
+        "version": 2023.1,
+        "supported": true,
+        "latest": 2023.7,
+        "latest_stable": 2023.7,
+        "latest_beta": "2023.4-beta"
+      },
+      {
+        "platform": "macos",
+        "version": 2023.1,
+        "supported": true,
+        "latest": 2023.1,
+        "latest_stable": 2023.1,
+        "latest_beta": "2023.1"
+      },
+      {
+        "platform": "windows",
+        "version": 2023.1,
+        "supported": true,
+        "latest": 2023.1,
+        "latest_stable": 2023.1,
+        "latest_beta": "2023.1"
+      },
+      {
+        "platform": "ios",
+        "version": 2023.1,
+        "supported": true,
+        "latest": 2023.1,
+        "latest_stable": 2023.1,
+        "latest_beta": "2023.1"
+      }
+];
 
-        // Fetch the release information from your database
-        // This is a placeholder - implement the actual database query logic
-        const releaseInfo = await getReleaseInfo(platform, version);
+app.get('/app/v1/releases/:platform', (req, res) => {
+    const { platform } = req.params;
 
-        if (releaseInfo) {
-            res.json(releaseInfo);
-        } else {
-            res.status(404).send('Release information not found');
+    // Filter the data for the specified platform
+    const filteredData = jsonData.filter(row => row.platform === platform);
+
+    // Find the latest version
+    let latestRelease = null;
+
+    filteredData.forEach(row => {
+        if (!latestRelease || parseFloat(row.latest) > parseFloat(latestRelease.latest)) {
+            latestRelease = row;
         }
-    } catch (error) {
-        console.error('Error:', error.message);
-        res.status(500).send('Internal Server Error');
+    });
+
+    if (latestRelease) {
+        res.json({
+            supported: latestRelease.supported,
+            latest: latestRelease.latest,
+            latest_stable: latestRelease.latest_stable,
+            latest_beta: latestRelease.latest_beta || null
+        });
+    } else {
+        res.status(404).send('No matching version found');
     }
 });
 

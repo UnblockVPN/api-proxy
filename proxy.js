@@ -28,7 +28,7 @@ const jsonData = [
     // ... your JSON data ...
     {
         "platform": "android",
-        "version": 2023,
+        "version": 2023.0,
         "supported": true,
         "latest": 2023.7,
         "latest_stable": 2023.7,

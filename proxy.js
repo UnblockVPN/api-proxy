@@ -25,15 +25,6 @@ function transformData(sbData) {
 
 // JSON data
 const jsonData = [
-    // ... your JSON data ...
-    {
-        "platform": "android",
-        "version": 2023.0,
-        "supported": true,
-        "latest": 2023.7,
-        "latest_stable": 2023.7,
-        "latest_beta": ""
-      },
       {
         "platform": "android",
         "version": 2023.1,
@@ -68,38 +59,25 @@ const jsonData = [
       }
 ];
 
-app.get('/app/v1/releases/:platform', (req, res) => {
-    const { platform } = req.params;
 
-    // Filter the data for the specified platform
-    const filteredData = jsonData.filter(row => row.platform === platform);
+app.get('/app/v1/releases/:platform/:version', (req, res) => {
+    const { platform, version } = req.params;
 
-    // Find the latest version
-    let latestRelease = null;
+    // Find the matching platform and version
+    const matchingRelease = jsonData.find(row => 
+        row.platform === platform && row.version.toString() === version);
 
-    filteredData.forEach(row => {
-        if (!latestRelease || parseFloat(row.latest) > parseFloat(latestRelease.latest)) {
-            latestRelease = row;
-        }
-    });
-
-    if (latestRelease) {
+    if (matchingRelease) {
         res.json({
-            supported: latestRelease.supported,
-            latest: latestRelease.latest,
-            latest_stable: latestRelease.latest_stable,
-            latest_beta: latestRelease.latest_beta || null
+            supported: matchingRelease.supported,
+            latest: matchingRelease.latest,
+            latest_stable: matchingRelease.latest_stable,
+            latest_beta: matchingRelease.latest_beta || null
         });
     } else {
         res.status(404).send('No matching version found');
     }
 });
-
-async function getReleaseInfo(platform, version) {
-    // Implement the logic to fetch release information from the database
-    // This function should return the object with the release information
-    // or null if not found
-}
 
 
 // Proxy endpoint for GET requests

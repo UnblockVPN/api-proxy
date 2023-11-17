@@ -31,23 +31,23 @@ const jsonData = [
         "supported": true,
         "latest": "2023.7",
         "latest_stable": "2023.7",
-        "latest_beta": "2023.7"
+        "latest_beta": null
       },
       {
         "platform": "macos",
         "version": 2023.1,
         "supported": true,
-        "latest": "2023.7",
-        "latest_stable": "2023.7",
-        "latest_beta": "2023.7"
+        "latest": "2023.5",
+        "latest_stable": "2023.5",
+        "latest_beta": "2023.5-beta2"
       },
       {
         "platform": "windows",
         "version": 2023.1,
         "supported": true,
-        "latest": "2023.7",
-        "latest_stable": "2023.7",
-        "latest_beta": "2023.7"
+        "latest": "2023.5",
+        "latest_stable": "2023.5",
+        "latest_beta": "2023.5-beta1"
       },
       {
         "platform": "ios",
@@ -56,6 +56,14 @@ const jsonData = [
         "latest": "2023.7",
         "latest_stable": "2023.7",
         "latest_beta": "2023.7"
+      },
+      {
+        "platform": "linux",
+        "version": 2023.1,
+        "supported": true,
+        "latest": "2023.5",
+        "latest_stable": "2023.5",
+        "latest_beta": "2023.5-beta1"
       }
 ];
 

@@ -12,6 +12,17 @@ app.use(express.json());
 
 const port = process.env.PORT || 3000;
 
+// Function to transform the data from Supabase format to the required format
+function transformData(sbData) {
+    if (Array.isArray(sbData) && sbData.length > 0 && sbData[0]['relay_data']) {
+        const relayData = sbData[0]['relay_data'];
+        return relayData;
+    } else {
+        console.error('Unexpected data structure or empty array:', sbData);
+        return {}; // or return an appropriate default value or error
+    }
+}
+
 // Proxy endpoint for GET requests
 app.get('/rest/v1/relays', async (req, res) => {
     console.log('Received GET request for /rest/v1/relays');
@@ -22,24 +33,13 @@ app.get('/rest/v1/relays', async (req, res) => {
         console.log(`Making GET request to ${url}`);
         const response = await axios.get(url);
 
-        // Checking if response.data is an array and has items
-        if (Array.isArray(response.data) && response.data.length > 0) {
-            // Extracting 'bridge' object from 'relay_data' of the first item in the array
-            const bridges = response.data.map(item => item.relay_data.bridge);
-
-            // Process or transform bridges as needed here
-            res.json(bridges);
-        } else {
-            console.error('Unexpected response structure:', response.data);
-            res.status(500).send('Unexpected response structure');
-        }
+        const transformedResponse = transformData(response.data);
+        res.json(transformedResponse);
     } catch (error) {
         console.error('Error in GET /rest/v1/relays:', error.message);
         res.status(500).send('Error while processing request');
     }
 });
-
-
 
 // New POST proxy endpoint for /rest/v1/submit-voucher
 app.post('/rest/v1/submit-voucher', async (req, res) => {

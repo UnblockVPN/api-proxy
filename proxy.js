@@ -6,6 +6,12 @@ const express = require('express');
 const axios = require('axios');
 const app = express();
 const port = process.env.PORT || 3000;
+const validVoucherCodes = [
+    "CODE-1234-ABCD", "CODE-5678-EFGH", "CODE-9012-IJKL",
+    "CODE-3456-MNOP", "CODE-7890-QRST", "CODE-1357-UVWX",
+    "CODE-2468-YZAB", "CODE-3690-CDEF", "CODE-1470-GHIJ",
+    "CODE-2580-KLMN"
+];
 
 // Middleware to parse JSON body for POST requests
 app.use(express.json());
@@ -78,6 +84,26 @@ const apiAddresses = [
     "91.90.44.10:444"
     // Add more addresses as needed
 ];
+
+
+app.post('/app/v1/submit-voucher', (req, res) => {
+    const { voucher_code } = req.body;
+
+    // Check if the voucher code is in the list of valid codes
+    if (validVoucherCodes.includes(voucher_code)) {
+        // Process the valid voucher code
+        // Example response with static values
+        const response = {
+            time_added: 2592000, // Example static value
+            new_expiry: "2024-08-28T12:49:20+00:00" // Example static value
+        };
+
+        res.json(response);
+    } else {
+        res.status(400).send('Invalid voucher code');
+    }
+});
+
 
 app.get('/app/v1/api-addrs', (req, res) => {
     res.json(apiAddresses);

@@ -111,6 +111,12 @@ app.post('/auth/v1/token', async (req, res) => {
     }
 });
 
+/* unix: curl -X POST \
+     -H "Authorization: Bearer mva_1f8fd3174195d63278134614e9494309d25ba1a8684dece02444d520a5127df5" \
+     https://api.mullvad.net/app/v1/www-auth-token
+
+{"auth_token":"ce824a030d814abc6aa63812b262c99f"}%   */
+
 app.post('/app/v1/www-auth-token', (req, res) => {
     // Extract the Authorization header from the request
     const authHeader = req.headers.authorization;
@@ -126,23 +132,25 @@ app.post('/app/v1/www-auth-token', (req, res) => {
 });
 
 app.post('/app/v1/submit-voucher', (req, res) => {
+    // Extract the voucher code from the request body
     const { voucher_code } = req.body;
 
-    // Check if the voucher code is in the list of valid codes
+    // Validate the voucher code and calculate the new expiry
+    // This is just a placeholder logic. Replace with your actual logic.
+    // Check if the voucher code is in the array of valid codes
     if (validVoucherCodes.includes(voucher_code)) {
-        // Process the valid voucher code
-        // Example response with static values
+        // Example response
         const response = {
-            time_added: 2592000, // Example static value
-            new_expiry: "2024-08-28T12:49:20+00:00" // Example static value
+            time_added: 2592000, // time in seconds
+            new_expiry: new Date(Date.now() + 2592000000).toISOString() // new expiry date 30 days from now
         };
 
         res.json(response);
     } else {
-        res.status(400).send('Invalid voucher code');
+        // Handle invalid voucher codes
+        res.status(400).json({ error: 'Invalid voucher code' });
     }
 });
-
 
 app.get('/app/v1/api-addrs', (req, res) => {
     res.json(apiAddresses);

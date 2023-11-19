@@ -169,8 +169,8 @@ app.get('/app/v1/releases/:platform/:version', (req, res) => {
 
 
 // Proxy endpoint for GET requests
-app.get('/rest/v1/relays', async (req, res) => {
-    console.log('Received GET request for /rest/v1/relays');
+app.get('/app/v1/relays', async (req, res) => {
+    console.log('Received GET request for /app/v1/relays');
     try {
         const apiKey = process.env.API_KEY;
         const url = `https://oklyglwabkhjmbmxsdga.supabase.co/rest/v1/relays?apikey=${apiKey}`;
@@ -181,7 +181,7 @@ app.get('/rest/v1/relays', async (req, res) => {
         const transformedResponse = transformData(response.data);
         res.json(transformedResponse);
     } catch (error) {
-        console.error('Error in GET /rest/v1/relays:', error.message);
+        console.error('Error in GET /app/v1/relays:', error.message);
         res.status(500).send('Error while processing request');
     }
 });

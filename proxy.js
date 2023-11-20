@@ -6,12 +6,7 @@ const express = require('express');
 const axios = require('axios');
 const app = express();
 const port = process.env.PORT || 3000;
-const validVoucherCodes = [
-    "CODE-1234-ABCD", "CODE-5678-EFGH", "CODE-9012-IJKL",
-    "CODE-3456-MNOP", "CODE-7890-QRST", "CODE-1357-UVWX",
-    "CODE-2468-YZAB", "CODE-3690-CDEF", "CODE-1470-GHIJ",
-    "CODE-2580-KLMN"
-];
+
 
 // Middleware to parse JSON body for POST requests
 app.use(express.json());
@@ -132,6 +127,13 @@ app.post('/app/v1/www-auth-token', (req, res) => {
 });
 
 app.post('/app/v1/submit-voucher', (req, res) => {
+    // Array of valid voucher codes
+    const validVoucherCodes = [
+        "CODE-1234-ABCD-CODE", "CODE-5678-EFGH-CODE", "CODE-9012-IJKL-CODE",
+        "CODE-3456-MNOP-CODE", "CODE-7890-QRST-CODE", "CODE-1357-UVWX-CODE",
+        "CODE-2468-YZAB-CODE", "CODE-3690-CDEF-CODE", "CODE-1470-GHIJ-CODE",
+        "CODE-2580-KLMN-CODE"
+    ];
     // Extract the voucher code from the request body
     const { voucher_code } = req.body;
 

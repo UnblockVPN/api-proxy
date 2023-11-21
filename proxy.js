@@ -154,6 +154,20 @@ app.post('/app/v1/submit-voucher', (req, res) => {
     }
 });
 
+app.post('/accounts/v1/accounts', (req, res) => {
+    const response = {
+        "id": "d8ca65f2-335c-4c0a-a6d7-2d4fd01bffa9",
+        "expiry": new Date().toISOString(),
+        "max_ports": 0,
+        "can_add_ports": false,
+        "max_devices": 5,
+        "can_add_devices": true,
+        "number": "5647180871195873"
+    };
+
+    res.json(response);
+});
+
 app.get('/app/v1/api-addrs', (req, res) => {
     res.json(apiAddresses);
 });

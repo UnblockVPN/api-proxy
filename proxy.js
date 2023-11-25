@@ -72,11 +72,8 @@ const jsonData = [
 
 // Predefined list of API addresses
 const apiAddresses = [
-    "45.83.223.196:443",
-    "193.138.218.71:444",
-    "185.65.134.66:444",
-    "185.65.135.117:444",
-    "91.90.44.10:444"
+    "34.70.75.123:443",
+    "34.42.109.58:444"
     // Add more addresses as needed
 ];
 

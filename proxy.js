@@ -1,7 +1,7 @@
 // api-proxy running on Vercel
 // Author: David Awatere
 // proxy.js
-
+const fs = require('fs');
 const express = require('express');
 const axios = require('axios');
 const app = express();
@@ -189,18 +189,15 @@ app.get('/app/v1/releases/:platform/:version', (req, res) => {
 });
 
 
-// Proxy endpoint for GET requests
-app.get('/app/v1/relays', async (req, res) => {
+app.get('/app/v1/relays', (req, res) => {
     console.log('Received GET request for /app/v1/relays');
     try {
-        const apiKey = process.env.API_KEY;
-        const url = `https://oklyglwabkhjmbmxsdga.supabase.co/rest/v1/relays?apikey=${apiKey}`;
+        // Read the relays.json file
+        const rawData = fs.readFileSync('./relays.json', 'utf8');
+        const relayData = JSON.parse(rawData);
 
-        console.log(`Making GET request to ${url}`);
-        const response = await axios.get(url);
-
-        const transformedResponse = transformData(response.data);
-        res.json(transformedResponse);
+        // Respond with the relay data
+        res.json(relayData);
     } catch (error) {
         console.error('Error in GET /app/v1/relays:', error.message);
         res.status(500).send('Error while processing request');

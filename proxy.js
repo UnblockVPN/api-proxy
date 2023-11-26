@@ -68,12 +68,18 @@ const jsonData = [
       }
 ];
 
+//const relays = [
+//{"locations":{"au-adl":{"country":"Australia","city":"Adelaide","latitude":-34.92123,"longitude":138.599503},"nl-ams":{"country":"Netherlands","city":"Amsterdam","latitude":52.35,"longitude":4.916667},"us-qas":{"country":"USA","city":"Ashburn, VA","latitude":39.043757,"longitude":-77.487442}}
+//}];
 
+const rawRelaysData = fs.readFileSync('relays.json', 'utf8');
+const relays = JSON.parse(rawRelaysData);
 
 // Predefined list of API addresses
 const apiAddresses = [
     "34.70.75.123:443",
-    "34.42.109.58:444"
+    "34.42.109.58:444",
+        "8.8.8.8"
     // Add more addresses as needed
 ];
 
@@ -139,10 +145,16 @@ app.post('/app/v1/submit-voucher', (req, res) => {
     // Check if the voucher code is in the array of valid codes
     if (validVoucherCodes.includes(voucher_code)) {
         // Example response
+        //const response = {
+        //    time_added: 2592000, // time in seconds
+        //    new_expiry: new Date(Date.now() + 2592000000).toISOString() // new expiry date 30 days from now
+        //    new_expiry: formatDate(new Date()), // Call formatDate to get the desired format
+        const timeInSeconds = 2592000; // 30 days in seconds
+        const newExpiryDate = new Date(Date.now() + timeInSeconds * 1000); // Calculate the new expiry date
         const response = {
-            time_added: 2592000, // time in seconds
-            new_expiry: new Date(Date.now() + 2592000000).toISOString() // new expiry date 30 days from now
-        };
+            time_added: timeInSeconds, // time in seconds (30 days)
+            new_expiry: formatDate(newExpiryDate), // Call formatDate to get the new expiry date in the desired format
+    };
 
         res.json(response);
     } else {
@@ -151,17 +163,73 @@ app.post('/app/v1/submit-voucher', (req, res) => {
     }
 });
 
+function formatDate(date) {
+    function pad(number) {
+        if (number < 10) {
+            return '0' + number;
+        }
+        return number;
+    }
+
+    return date.getUTCFullYear() +
+        '-' + pad(date.getUTCMonth() + 1) +
+        '-' + pad(date.getUTCDate()) +
+        'T' + pad(date.getUTCHours()) +
+        ':' + pad(date.getUTCMinutes()) +
+        ':' + pad(date.getUTCSeconds()) +
+        '+00:00'; // Time zone offset for UTC
+}
+
+
 app.post('/accounts/v1/accounts', (req, res) => {
     const response = {
         "id": "d8ca65f2-335c-4c0a-a6d7-2d4fd01bffa9",
-        "expiry": new Date().toISOString(),
+        //"expiry": new Date().toISOString().replace('Z', '+00:00'), // Adjusted to match MV API's format
+        "expiry": formatDate(new Date()), // Call formatDate to get the desired format
         "max_ports": 0,
         "can_add_ports": false,
         "max_devices": 5,
         "can_add_devices": true,
         "number": "5647180871195873"
     };
+// Send 201 Created status code
+    res.status(201).json(response);
+    //res.json(response);
+});
 
+// Mock endpoint for creating a new device
+app.post('/accounts/v1/devices', (req, res) => {
+    // Extract data from request body
+    const { pubkey, hijack_dns } = req.body;
+
+    // Mock response using the example values from Mullvad VPN
+    const response = {
+        "id": "f69b7f68-adee-4575-a03c-9f56a2d15e82", // Example ID
+        "name": "cuddly otter", // Example name
+        "pubkey": pubkey, // Echoing back the pubkey from the request
+        "hijack_dns": hijack_dns, // Echoing back the hijack_dns value from the request
+        "created": "2023-11-26T15:50:25+00:00", // Example creation timestamp
+        "ipv4_address": "10.134.153.2/32", // Example IPv4 address
+        "ipv6_address": "fc00:bbbb:bbbb:bb01:d:0:6:9902/128", // Example IPv6 address
+        "ports": [] // Example ports array, empty in this case
+    };
+
+    // Send the response
+    res.status(201).json(response);
+});
+
+app.get('/accounts/v1/accounts/me', (req, res) => {
+    // Create a mock response that mimics the Mullvad VPN API response
+    const response = {
+        "id": "58946512-3d45-46b6-a474-6008241aedad", // Example account ID
+        "expiry": "2023-11-26T15:30:13+00:00", // Example expiry timestamp
+        "max_ports": 0, // Example max ports
+        "can_add_ports": false, // Example can add ports flag
+        "max_devices": 5, // Example max devices
+        "can_add_devices": true // Example can add devices flag
+    };
+
+    // Send the response
     res.json(response);
 });
 
@@ -188,45 +256,8 @@ app.get('/app/v1/releases/:platform/:version', (req, res) => {
     }
 });
 
-
 app.get('/app/v1/relays', (req, res) => {
-    console.log('Received GET request for /app/v1/relays');
-    try {
-        // Read the relays.json file
-        const rawData = fs.readFileSync('./relays.json', 'utf8');
-        const relayData = JSON.parse(rawData);
-
-        // Respond with the relay data
-        res.json(relayData);
-    } catch (error) {
-        console.error('Error in GET /app/v1/relays:', error.message);
-        res.status(500).send('Error while processing request');
-    }
-});
-
-// New POST proxy endpoint for /rest/v1/submit-voucher
-app.post('/rest/v1/submit-voucher', async (req, res) => {
-    console.log('Received POST request for /rest/v1/submit-voucher with data:', req.body);
-    try {
-        const apiKey = process.env.API_KEY;
-        const url = 'https://api.mullvad.net/v1/submit-voucher';
-
-        const postData = req.body;
-
-        console.log(`Making POST request to ${url} with data:`, postData);
-        const response = await axios.post(url, postData, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            }
-        });
-
-        console.log('Successfully submitted voucher and received response');
-        res.json(response.data);
-    } catch (error) {
-        console.error('Error in POST /rest/v1/submit-voucher:', error.message);
-        res.status(500).send('Error while processing request');
-    }
+    res.json(relays);
 });
 
 app.listen(port, () => {

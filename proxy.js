@@ -68,19 +68,11 @@ const jsonData = [
       }
 ];
 
-//const relays = [
-//{"locations":{"au-adl":{"country":"Australia","city":"Adelaide","latitude":-34.92123,"longitude":138.599503},"nl-ams":{"country":"Netherlands","city":"Amsterdam","latitude":52.35,"longitude":4.916667},"us-qas":{"country":"USA","city":"Ashburn, VA","latitude":39.043757,"longitude":-77.487442}}
-//}];
-
 const rawRelaysData = fs.readFileSync('relays.json', 'utf8');
 const relays = JSON.parse(rawRelaysData);
-
-// Predefined list of API addresses
 const apiAddresses = [
     "34.70.75.123:443",
-    "34.42.109.58:444",
-        "8.8.8.8"
-    // Add more addresses as needed
+    "34.42.109.58:444"
 ];
 
 // New POST proxy endpoint for /auth/v1/token
@@ -98,9 +90,7 @@ app.post('/auth/v1/token', async (req, res) => {
         // Simulate generating an access token and expiry date
         const accessToken = 'mva_fedcf913645964bcb5332c1e3dd5ce851ef7ba3a98b6508982548403054e2e53';
         const expiryDate = '2023-11-19T21:33:41+00:00';
-
         console.log('Successfully generated access token and expiry date');
-        
         // Send a JSON response with the access token and expiry date
         res.json({ access_token: accessToken, expiry: expiryDate });
     } catch (error) {
@@ -118,7 +108,6 @@ app.post('/auth/v1/token', async (req, res) => {
 app.post('/app/v1/www-auth-token', (req, res) => {
     // Extract the Authorization header from the request
     const authHeader = req.headers.authorization;
-
     // Check if the Authorization header is present and valid
     if (authHeader === 'Bearer mva_fedcf913645964bcb5332c1e3dd5ce851ef7ba3a98b6508982548403054e2e53') {
         // Respond with the auth token
@@ -139,11 +128,14 @@ app.post('/app/v1/submit-voucher', (req, res) => {
     ];
     // Extract the voucher code from the request body
     const { voucher_code } = req.body;
-
-    // Validate the voucher code and calculate the new expiry
-    // This is just a placeholder logic. Replace with your actual logic.
-    // Check if the voucher code is in the array of valid codes
-    if (validVoucherCodes.includes(voucher_code)) {
+        // Log the entire request header
+        console.log('Request Header:', req.headers);
+        // Log the entire request body
+        console.log('Request Body:', req.body);
+        // Validate the voucher code and calculate the new expiry
+        // This is just a placeholder logic. Replace with your actual logic.
+        // Check if the voucher code is in the array of valid codes
+        if (validVoucherCodes.includes(voucher_code)) {
         // Example response
         //const response = {
         //    time_added: 2592000, // time in seconds
@@ -180,7 +172,6 @@ function formatDate(date) {
         '+00:00'; // Time zone offset for UTC
 }
 
-
 app.post('/accounts/v1/accounts', (req, res) => {
     const response = {
         "id": "d8ca65f2-335c-4c0a-a6d7-2d4fd01bffa9",
@@ -197,11 +188,10 @@ app.post('/accounts/v1/accounts', (req, res) => {
     //res.json(response);
 });
 
-// Mock endpoint for creating a new device
+
 app.post('/accounts/v1/devices', (req, res) => {
     // Extract data from request body
     const { pubkey, hijack_dns } = req.body;
-
     // Mock response using the example values from Mullvad VPN
     const response = {
         "id": "f69b7f68-adee-4575-a03c-9f56a2d15e82", // Example ID
@@ -218,10 +208,11 @@ app.post('/accounts/v1/devices', (req, res) => {
     res.status(201).json(response);
 });
 
+
 app.get('/accounts/v1/accounts/me', (req, res) => {
     // Create a mock response that mimics the Mullvad VPN API response
     const response = {
-        "id": "58946512-3d45-46b6-a474-6008241aedad", // Example account ID
+        "id": "d8ca65f2-335c-4c0a-a6d7-2d4fd01bffa9", // Example account ID
         "expiry": "2023-11-26T15:30:13+00:00", // Example expiry timestamp
         "max_ports": 0, // Example max ports
         "can_add_ports": false, // Example can add ports flag

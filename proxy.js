@@ -65,8 +65,7 @@ const jsonData = [
 const rawRelaysData = fs.readFileSync('relays.json', 'utf8');
 const relays = JSON.parse(rawRelaysData);
 const apiAddresses = [
-    "34.70.75.123:443",
-    "34.42.109.58:444"
+    "34.42.109.58:443"
 ];
 
 app.post('/auth/v1/token', async (req, res) => {

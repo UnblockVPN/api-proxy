@@ -170,6 +170,21 @@ app.post('/accounts/v1/devices', (req, res) => {
     res.status(201).json(response);
 });
 
+app.get('/accounts/v1/devices/:id', (req, res) => {
+    const deviceId = req.params.id;
+    const response = {
+        "id": deviceId,
+        "name": "cuddly otter",
+        "pubkey": "example-public-key",
+        "hijack_dns": false,
+        "created": "2023-11-26T15:50:25+00:00",
+        "ipv4_address": "10.134.153.2/32",
+        "ipv6_address": "fc00:bbbb:bbbb:bb01:d:0:6:9902/128",
+        "ports": []
+    };
+    // Send the response
+    res.json(response);
+});
 
 app.get('/accounts/v1/accounts/me', (req, res) => {
     // Create a mock response that mimics the Mullvad VPN API response

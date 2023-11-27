@@ -1,20 +1,31 @@
 #!/bin/bash
+# Build api server
+# Author: David Awatere
+# build.sh
 
 # Set your desired hostname here
-#HOSTNAME="your-hostname.com"
+HOSTNAME="api.unblockvpn.io"
 
-# Prompt for hostname
-read -p "Enter your hostname (e.g., api.example.com): " HOSTNAME
+# Check if certificate files exist in the specified directory
+CERT_DIR="/etc/letsencrypt/live/${HOSTNAME}"
+FULLCHAIN_CERT="${CERT_DIR}/fullchain.pem"
+PRIVKEY_CERT="${CERT_DIR}/privkey.pem"
+
+if [ ! -f "$FULLCHAIN_CERT" ] || [ ! -f "$PRIVKEY_CERT" ]; then
+  echo "Error: Certificate files not found in $CERT_DIR"
+  echo "Please manually copy the certificate files to this directory before running the script."
+  exit 1
+fi
 
 # Install required packages
 sudo apt-get update
 sudo apt-get install -y nodejs npm git
 
 # Clone the repository
-git clone https://github.com/hinetapora/api-proxy /home/unblockvpnio/api-proxy
+git clone https://github.com/hinetapora/api-proxy $HOME/api-proxy
 
 # Install Node.js dependencies
-cd /home/unblockvpnio/api-proxy
+cd $HOME/api-proxy
 npm install
 
 # Install PM2 to manage the Node.js app and set it to start at boot
@@ -52,15 +63,6 @@ sudo ln -s /etc/nginx/sites-available/${HOSTNAME} /etc/nginx/sites-enabled/
 # Test Nginx configuration and reload it
 sudo nginx -t
 sudo systemctl reload nginx
-
-# Install Certbot for Let's Encrypt
-sudo apt-get install -y certbot python3-certbot-nginx
-
-# Obtain and configure Let's Encrypt certificates
-sudo certbot --nginx --non-interactive --agree-tos --email security@unblockvpn.io -d ${HOSTNAME}
-
-# Print the certificate information
-sudo openssl x509 -enddate -noout -in /etc/letsencrypt/live/${HOSTNAME}/fullchain.pem
 
 # Check if the app is running
 curl http://${HOSTNAME}:443

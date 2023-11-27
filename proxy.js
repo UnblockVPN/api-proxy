@@ -187,10 +187,9 @@ app.get('/accounts/v1/devices/:id', (req, res) => {
 });
 
 app.get('/accounts/v1/accounts/me', (req, res) => {
-    // Create a mock response that mimics the Mullvad VPN API response
     const response = {
         "id": "d8ca65f2-335c-4c0a-a6d7-2d4fd01bffa9", // Example account ID
-        "expiry": "2023-11-26T15:30:13+00:00", // Example expiry timestamp
+        "expiry": "2023-12-26T15:30:13+00:00", // Example expiry timestamp
         "max_ports": 0, // Example max ports
         "can_add_ports": false, // Example can add ports flag
         "max_devices": 5, // Example max devices

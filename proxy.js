@@ -8,7 +8,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.json());  // Middleware to parse JSON body for POST requests
-
+app.use(express.urlencoded({ extended: true })); // Middleware to parse URL-encoded data
 app.use((req, res, next) => {
     console.log(`Incoming Request: ${req.method} ${req.url}`);
     console.log(`Headers: `, req.headers);

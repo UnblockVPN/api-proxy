@@ -10,14 +10,20 @@ const port = process.env.PORT || 3000;
 app.use(express.json());  // Middleware to parse JSON body for POST requests
 app.use(express.urlencoded({ extended: true })); // Middleware to parse URL-encoded data
 app.use((req, res, next) => {
+    const oldJson = res.json;
+
+    res.json = function(data) {
+        console.log(`Response for ${req.method} ${req.url}: `, data);
+        oldJson.apply(res, arguments);
+    };
+
     console.log(`Incoming Request: ${req.method} ${req.url}`);
     console.log(`Headers: `, req.headers);
     console.log(`Body: `, req.body);
   
-    // To capture the response as well, you might need to modify the res object here
-  
     next(); // Continue to the next middleware or the request handler
-  });
+});
+
   
 function transformData(sbData) {  // Function to transform the data from Supabase format to the required format
     if (Array.isArray(sbData) && sbData.length > 0 && sbData[0]['relay_data']) {

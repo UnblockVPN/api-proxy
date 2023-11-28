@@ -196,6 +196,21 @@ app.get('/accounts/v1/devices/:id', (req, res) => {
     res.json(response);
 });
 
+app.post('/wg', (req, res) => {
+    const { account, pubkey } = req.body;
+
+    // Here, implement your logic to handle the account and pubkey
+    // For example, you might want to validate the account number, generate an IP address, etc.
+
+    // This is a placeholder response. In a real scenario, you would generate a WireGuard configuration.
+    const response = {
+        ipv4_address: "10.67.208.231/32",
+        ipv6_address: "fc00:bbbb:bbbb:bb01::4:d0e6/128"
+    };
+
+    res.json(response);
+});
+
 app.get('/accounts/v1/accounts/me', (req, res) => {
     const response = {
         "id": "d8ca65f2-335c-4c0a-a6d7-2d4fd01bffa9", // Example account ID

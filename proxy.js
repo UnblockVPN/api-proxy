@@ -177,7 +177,7 @@ app.post('/accounts/v1/devices', (req, res) => {
         "pubkey": pubkey, // Echoing back the pubkey from the request
         "hijack_dns": hijack_dns, // Echoing back the hijack_dns value from the request
         "created": "2023-11-26T15:50:25+00:00", // Example creation timestamp
-        "ipv4_address": "10.134.153.2/32", // Example IPv4 address
+        "ipv4_address": "10.64.0.2/32", // Example IPv4 address
         "ipv6_address": "fc00:bbbb:bbbb:bb01:d:0:6:9902/128", // Example IPv6 address
         "ports": [] // Example ports array, empty in this case
     };

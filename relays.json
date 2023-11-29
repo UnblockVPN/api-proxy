@@ -5579,10 +5579,10 @@
         "owned": false,
         "provider": "hostuniversal",
         "stboot": true,
-        "ipv4_addr_in": "34.85.168.143",
+        "ipv4_addr_in": "34.30.177.37",
         "include_in_country": true,
         "weight": 100,
-        "public_key": "ZN9ba7Xn349ssoA3X1swsop4dZ/uTVcmk0hHI3xJ43c=",
+        "public_key": "7XjMPr7lFLF4te5B8UpQlAyXOjkd8bEjGAp4eNYNKnY=",
         "ipv6_addr_in": "2404:f780:5:dec::c02f",
         "same_ip": true
       },

@@ -88,7 +88,7 @@ app.post('/auth/v1/token', async (req, res) => {
     console.log('Received POST request for /auth/v1/token with data:', req.body);
     try {  // Simulate generating an access token and expiry date
         const accessToken = 'mva_fedcf913645964bcb5332c1e3dd5ce851ef7ba3a98b6508982548403054e2e53';
-        const expiryDate = '2023-11-19T21:33:41+00:00';
+        const expiryDate = '2023-12-19T21:33:41+00:00';
         console.log('Successfully generated access token and expiry date');
         res.json({ access_token: accessToken, expiry: expiryDate });  // Send a JSON response with the access token and expiry date
     } catch (error) {

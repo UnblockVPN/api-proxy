@@ -5583,7 +5583,7 @@
         "include_in_country": true,
         "weight": 100,
         "public_key": "4yJHnbCOXiiW5meBA/erDjVpkkWf6ycdTkaY46BBcRo=",
-        "ipv6_addr_in": "",
+        "ipv6_addr_in": "2404:f000:5:dec::c02f",
         "same_ip": true
       },
       {

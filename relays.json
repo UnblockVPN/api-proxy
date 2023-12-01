@@ -8453,7 +8453,10 @@
         123
       ],
       [
-        51820, 59379
+        20000,30000
+      ],
+      [
+        30000,51820
       ]
     ],
     "ipv4_gateway": "10.64.0.1",
@@ -8797,19 +8800,19 @@
         "protocol": "tcp",
         "port": 443,
         "cipher": "aes-256-gcm",
-        "password": "mullvad"
+        "password": "unblockvpn.io"
       },
       {
         "protocol": "udp",
         "port": 1234,
         "cipher": "aes-256-cfb",
-        "password": "mullvad"
+        "password": "unblockvpn.io"
       },
       {
         "protocol": "udp",
         "port": 1236,
         "cipher": "aes-256-gcm",
-        "password": "mullvad"
+        "password": "unblockvpn.io"
       }
     ]
   }

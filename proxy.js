@@ -9,11 +9,14 @@ const port = process.env.PORT || 3000;
 
 require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
-const { generateUniqueAccountNumber } = require('./accountGenerator');
+let supabase = null;
+if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
+    supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+} else {
+    console.warn('Supabase URL and Key are not set. Supabase client will not be initialized.');
+}
 
+const { generateUniqueAccountNumber } = require('./accountGenerator');
 
 app.use(express.json());  // Middleware to parse JSON body for POST requests
 app.use(express.urlencoded({ extended: true })); // Middleware to parse URL-encoded data

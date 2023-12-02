@@ -194,7 +194,7 @@ app.get('/accounts/v1/devices/:id', (req, res) => {
         //"pubkey": "wfIcFnL9e1mpaFD95h9zdxGHCWSzSTZY7WAuetceDz0=",
         "hijack_dns": false,
         "created": "2023-11-26T15:50:25+00:00",
-        "ipv4_address": "10.134.153.2/32",
+        "ipv4_address": "10.64.0.2/32",
         "ipv6_address": "fc00:bbbb:bbbb:bb01:d:0:6:9902/128",
         "ports": []
     };

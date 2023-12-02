@@ -191,7 +191,7 @@ app.get('/accounts/v1/devices/:id', (req, res) => {
     const response = {
         "id": deviceId,
         "name": "cuddly otter",
-        "pubkey": "wfIcFnL9e1mpaFD95h9zdxGHCWSzSTZY7WAuetceDz0=",
+        //"pubkey": "wfIcFnL9e1mpaFD95h9zdxGHCWSzSTZY7WAuetceDz0=",
         "hijack_dns": false,
         "created": "2023-11-26T15:50:25+00:00",
         "ipv4_address": "10.134.153.2/32",

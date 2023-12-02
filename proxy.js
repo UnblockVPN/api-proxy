@@ -12,6 +12,7 @@ const { createClient } = require('@supabase/supabase-js');
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
+const { generateUniqueAccountNumber } = require('./accountGenerator');
 
 
 app.use(express.json());  // Middleware to parse JSON body for POST requests
@@ -31,8 +32,6 @@ app.use((req, res, next) => {
     next(); // Continue to the next middleware or the request handler
 });
 
-
-
 async function addAccount(accountNumber) {
     const { data, error } = await supabase
       .from('accounts')
@@ -45,8 +44,24 @@ async function addAccount(accountNumber) {
     return data;
   }
   
+  app.post('/accounts/v1/request-account-number', async (req, res) => {
+    if (!supabase) {
+        return res.status(503).send('Service unavailable: Supabase client is not initialized');
+    }
 
+    try {
+        const accountNumber = generateUniqueAccountNumber();
+        const { data, error } = await supabase
+            .from('accounts')
+            .insert([{ account_number: accountNumber }]);
 
+        if (error) throw error;
+        res.status(201).json({ accountNumber: accountNumber });
+    } catch (error) {
+        console.error('Error creating account:', error);
+        res.status(500).send('Error processing request');
+    }
+});
 
   
 function transformData(sbData) {  // Function to transform the data from Supabase format to the required format

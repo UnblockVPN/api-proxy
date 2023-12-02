@@ -7,13 +7,6 @@ const axios = require('axios');
 const app = express();
 const port = process.env.PORT || 3000;
 
-require('dotenv').config();
-const { createClient } = require('@supabase/supabase-js');
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-
 app.use(express.json());  // Middleware to parse JSON body for POST requests
 app.use(express.urlencoded({ extended: true })); // Middleware to parse URL-encoded data
 app.use((req, res, next) => {
@@ -30,23 +23,6 @@ app.use((req, res, next) => {
   
     next(); // Continue to the next middleware or the request handler
 });
-
-
-
-async function addAccount(accountNumber) {
-    const { data, error } = await supabase
-      .from('accounts')
-      .insert([{ account_number: accountNumber }]);
-  
-    if (error) {
-      console.error('Error adding account:', error);
-      return null;
-    }
-    return data;
-  }
-  
-
-
 
   
 function transformData(sbData) {  // Function to transform the data from Supabase format to the required format

@@ -7,6 +7,17 @@ const axios = require('axios');
 const app = express();
 const port = process.env.PORT || 3000;
 
+require('dotenv').config();
+const { createClient } = require('@supabase/supabase-js');
+let supabase = null;
+if (process.env.SUPABASE_URL && process.env.SUPABASE_KEY) {
+    supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+} else {
+    console.warn('Supabase URL and Key are not set. Supabase client will not be initialized.');
+}
+
+const { generateUniqueAccountNumber } = require('./accountGenerator');
+
 app.use(express.json());  // Middleware to parse JSON body for POST requests
 app.use(express.urlencoded({ extended: true })); // Middleware to parse URL-encoded data
 app.use((req, res, next) => {
@@ -22,6 +33,37 @@ app.use((req, res, next) => {
     console.log(`Body: `, req.body);
   
     next(); // Continue to the next middleware or the request handler
+});
+
+async function addAccount(accountNumber) {
+    const { data, error } = await supabase
+      .from('accounts')
+      .insert([{ account_number: accountNumber }]);
+  
+    if (error) {
+      console.error('Error adding account:', error);
+      return null;
+    }
+    return data;
+  }
+  
+  app.post('/accounts/v1/request-account-number', async (req, res) => {
+    if (!supabase) {
+        return res.status(503).send('Service unavailable: Supabase client is not initialized');
+    }
+
+    try {
+        const accountNumber = generateUniqueAccountNumber();
+        const { data, error } = await supabase
+            .from('accounts')
+            .insert([{ account_number: accountNumber }]);
+
+        if (error) throw error;
+        res.status(201).json({ accountNumber: accountNumber });
+    } catch (error) {
+        console.error('Error creating account:', error);
+        res.status(500).send('Error processing request');
+    }
 });
 
   

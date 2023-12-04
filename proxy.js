@@ -1,6 +1,7 @@
 // api proxy running on nodejs express
 // Author: David Awatere
 // proxy.js
+require('dotenv').config();
 const fs = require('fs');
 const express = require('express');
 const axios = require('axios');

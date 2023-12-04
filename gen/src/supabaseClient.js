@@ -22,3 +22,23 @@ export const insertVoucher = async (voucherCode) => {
   if (error) throw error;
   return data;
 };
+
+export const checkVoucherExists = async (voucherCode) => {
+  const { data, error } = await supabase
+    .from('voucher_codes')
+    .select('voucher_number', { count: 'exact' }) // Count the number of matches
+    .eq('voucher_number', voucherCode);
+
+  if (error) throw error;
+  return data.length > 0; // true if any rows exist
+};
+
+export const checkAccountExists = async (accountNumber) => {
+  const { data, error } = await supabase
+    .from('accounts')
+    .select('account_number', { count: 'exact' }) // Count the number of matches
+    .eq('account_number', accountNumber);
+
+  if (error) throw error;
+  return data.length > 0; // true if any rows exist
+};

@@ -8,8 +8,10 @@ const app = express();
 const port = process.env.PORT || 3000;
 const path = require('path');
 
-// Serve the React app when the "/gen" route is accessed.
 app.use('/gen', express.static(path.join(__dirname, 'gen', 'build')));
+app.get('/gen/*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'gen', 'build', 'index.html'));
+});
 
 app.use(express.json());  // Middleware to parse JSON body for POST requests
 app.use(express.urlencoded({ extended: true })); // Middleware to parse URL-encoded data

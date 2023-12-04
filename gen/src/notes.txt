@@ -1,0 +1,68 @@
+To update the `account_number` column in the `accounts` table in Supabase when a voucher is generated, you need to add a function to interact with Supabase in your `supabaseClient.js` and then call this function in your `App.js` after generating a voucher.
+
+### Step 1: Update `supabaseClient.js`
+
+First, let's add a function to update the `account_number` in `supabaseClient.js`. This function will be an asynchronous function because it involves network requests.
+
+```javascript
+// In supabaseClient.js
+
+// ... existing imports and setup
+
+export const updateAccountNumber = async (accountId, accountNumber) => {
+  const { data, error } = await supabase
+    .from('accounts')
+    .update({ account_number: accountNumber })
+    .match({ id: accountId });
+
+  if (error) throw error;
+  return data;
+};
+
+// ... any other functions
+```
+
+### Step 2: Update `App.js`
+
+Now, in your `App.js`, call this function after generating a voucher. For this example, I'll assume that you know the `accountId` that needs to be updated. If you need to fetch this from somewhere or if it's input by the user, you'll need to adjust accordingly.
+
+```javascript
+// In App.js
+
+// ... existing imports and setup
+
+function App() {
+  // ... existing state and functions
+
+  const generateVoucher = async () => {
+    let result = '';
+    // ... existing voucher generation logic
+
+    setVoucher(result);
+
+    try {
+      const accountId = 1; // Replace with the actual account ID you want to update
+      await updateAccountNumber(accountId, result);
+      console.log('Account number updated successfully');
+    } catch (error) {
+      console.error('Error updating account number:', error);
+    }
+  };
+
+  // ... rest of your component
+}
+
+export default App;
+```
+
+### Notes:
+
+1. **Error Handling**: The `try...catch` block in `generateVoucher` function is used for catching any errors that might occur during the update operation.
+
+2. **Async Function**: Notice that `generateVoucher` is now an `async` function because it's making an asynchronous call to update the account number.
+
+3. **Account ID**: This example uses a hardcoded `accountId` of `1`. You'll need to replace this with the actual ID of the account you want to update.
+
+4. **Testing**: Make sure to test this functionality thoroughly to ensure it interacts with your Supabase database as expected.
+
+5. **Security**: Ensure that you handle authentication and permissions correctly in your Supabase setup to prevent unauthorized access to your database.

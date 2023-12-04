@@ -7,7 +7,7 @@ import { insertVoucher, insertAccount } from './supabaseClient';
 
 function App() {
   const voucherPlaceholder = '0000-0000-0000-0000';
-  const accountPlaceholder = '0000-0000-0000-0000';
+  const accountPlaceholder = '0000000000000000';
   const [voucher, setVoucher] = useState('');
   const [account, setAccount] = useState('');
   const generateVoucher = async () => {
@@ -16,6 +16,7 @@ function App() {
     const charactersLength = characters.length;
     for (let i = 0; i < 16; i++) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
+      if ((i + 1) % 4 === 0 && i < 15) result += '-'; // Add dash after every 4 characters
     }
     setVoucher(result);
     try {

@@ -6,6 +6,64 @@ const express = require('express');
 const axios = require('axios');
 const app = express();
 const port = process.env.PORT || 3000;
+const { createClient } = require('@supabase/supabase-js');
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+function generateAccountNumber() {
+    let accountNumber = '';
+    const characters = '0123456789';
+    for (let i = 0; i < 16; i++) {
+        accountNumber += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return accountNumber;
+}
+async function checkAccountExists(accountNumber) {
+    const { data, error } = await supabase
+        .from('accounts')
+        .select('account_number', { count: 'exact' })
+        .eq('account_number', accountNumber);
+    
+    if (error) throw error;
+    return data.length > 0;
+}
+async function insertAccount(accountNumber) {
+    const { data, error } = await supabase
+        .from('accounts')
+        .insert([{ account_number: accountNumber }]);
+    
+    if (error) throw error;
+    return data;
+}
+app.post('/accounts/v1/accounts', async (req, res) => {
+    try {
+        let accountNumber, accountExists;
+        do {
+            accountNumber = generateAccountNumber();
+            accountExists = await checkAccountExists(accountNumber);
+        } while (accountExists);
+
+        await insertAccount(accountNumber);
+
+        const response = {
+            id: "d8ca65f2-335c-4c0a-a6d7-2d4fd01bffa9", // Static or dynamically generated ID
+            expiry: formatDate(new Date()), // Using your existing formatDate function
+            max_ports: 0,
+            can_add_ports: false,
+            max_devices: 5,
+            can_add_devices: true,
+            number: accountNumber // The newly generated unique account number
+        };
+
+        res.status(201).json(response); // Send 201 Created status code with response
+    } catch (error) {
+        console.error('Error in POST /accounts/v1/accounts:', error.message);
+        res.status(500).send('Error while processing request');
+    }
+});
+
+
 
 app.use(express.json());  // Middleware to parse JSON body for POST requests
 app.use(express.urlencoded({ extended: true })); // Middleware to parse URL-encoded data
@@ -153,7 +211,7 @@ function formatDate(date) {
         '+00:00'; // Time zone offset for UTC
 }
 
-app.post('/accounts/v1/accounts', (req, res) => {
+/* app.post('/accounts/v1/accounts', (req, res) => {
     const response = {
         "id": "d8ca65f2-335c-4c0a-a6d7-2d4fd01bffa9",
         //"expiry": new Date().toISOString().replace('Z', '+00:00'), // Adjusted to match MV API's format
@@ -165,7 +223,7 @@ app.post('/accounts/v1/accounts', (req, res) => {
         "number": "5647180871195873"
     };
     res.status(201).json(response); // Send 201 Created status code
-});
+}); */
 
 
 app.post('/accounts/v1/devices', (req, res) => {

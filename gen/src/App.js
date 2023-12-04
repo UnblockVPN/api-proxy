@@ -3,35 +3,27 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import './styles.css';
 import { ReactComponent as Logo } from './logo.svg';
+import { insertVoucher } from './supabaseClient';
 
 function App() {
   const [voucher, setVoucher] = useState('');
 
-  const generateVoucher = () => {
+  const generateVoucher = async () => {
     let result = '';
     const characters = '0123456789';
     const charactersLength = characters.length;
     for (let i = 0; i < 16; i++) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
-      if ((i + 1) % 4 === 0 && i < 15) result += '-';
     }
     setVoucher(result);
+    try {
+      const voucherCodeWithoutSpaces = result.replace(/\s/g, ''); // Remove spaces
+      await insertVoucher(voucherCodeWithoutSpaces); // Send voucher code without spaces to Supabase
+      console.log('Voucher inserted successfully');
+    } catch (error) {
+      console.error('Error inserting voucher:', error);
+    }
   };
-
-  const copyToClipboard = text => {
-    const textToCopy = text.replace(/-/g, ''); // Remove dashes
-    navigator.clipboard.writeText(textToCopy)
-      .then(() => {
-        // You can display a message that copying was successful, if desired
-        console.log('Text copied to clipboard');
-      })
-      .catch(err => {
-        console.error('Failed to copy text: ', err);
-        alert(`Failed to copy text: ${err.message}`);
-
-      });
-  };
-
   return (
     <div>
       <Logo className="logo" />
@@ -41,7 +33,7 @@ function App() {
           GENERATE
         </Button>
         {voucher && (
-          <Typography style={{ marginTop: '20px', cursor: 'pointer' }} onClick={() => copyToClipboard(voucher)}>
+          <Typography style={{ marginTop: '20px', cursor: 'pointer' }}>
             {voucher}
           </Typography>
         )}

@@ -6,6 +6,7 @@ const express = require('express');
 const axios = require('axios');
 const app = express();
 const port = process.env.PORT || 3000;
+const path = require('path');
 
 // Serve the React app when the "/gen" route is accessed.
 app.use('/gen', express.static(path.join(__dirname, 'gen', 'build')));

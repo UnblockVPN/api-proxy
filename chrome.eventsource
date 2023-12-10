@@ -1,0 +1,4 @@
+const evtSource = new EventSource('http://localhost:3000/sse/events'); // Replace with your endpoint
+evtSource.onmessage = (event) => {
+    console.log('Event received:', event.data);
+};

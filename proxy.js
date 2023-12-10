@@ -6,6 +6,7 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 const authRouter = require('./routes/auth');
+const sseRouter = require('./routes/sse');
 const accountsRouter = require('./routes/accounts');
 const resourcesRouter = require('./routes/resources');
 const app = express();
@@ -24,6 +25,7 @@ app.use((req, res, next) => { // Middleware for logging
 app.use('/auth', authRouter);
 app.use('/accounts', accountsRouter);
 app.use('/app', resourcesRouter);
+app.use('/sse', sseRouter);
 app.use((req, res) => {// Response for unimplemented routes
     res.status(501).send('API route does not exist');
 });

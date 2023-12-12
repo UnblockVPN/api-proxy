@@ -14,11 +14,10 @@ const ip = require('ip');
 // Function to generate a SHA-256 token and return it with an expiry date
 async function generateToken(accountNumber) {
     console.log(`Starting token generation process for account number: ${accountNumber}`);
-    console.log(`Received account number for token generation: Type - ${typeof accountNumber}, Value - ${accountNumber}`);
 
     // Generate and store SHA-256 token
     console.log('Calling generateAndStoreToken to create a new SHA-256 token.');
-    const tokenData = await generateAndStoreToken(accountNumber);  // Pass accountNumber here
+    const tokenData = await generateAndStoreToken(accountNumber);  // Ensure you pass the accountNumber
     if (!tokenData) {
         console.error('Failed to generate SHA-256 token');
         return null;
@@ -26,22 +25,23 @@ async function generateToken(accountNumber) {
     const sha256Token = tokenData.cryptotoken;
     console.log(`SHA-256 token generated and stored successfully: ${sha256Token}`);
 
-    // Calculate expiry date (24 hours from now or your desired duration)
+    // Calculate expiry date (24 hours from now)
     console.log('Calculating expiry date for the token.');
     const expiryDate = new Date();
-    expiryDate.setHours(expiryDate.getHours() + 24);  // Set token expiry
+    expiryDate.setHours(expiryDate.getHours() + 24);
 
-    // Format the expiry date
-    const formattedExpiryDate = expiryDate.toISOString().replace('Z', '+00:00');
+    // Format the expiry date to match MV format (without milliseconds and with timezone offset)
+    const formattedExpiryDate = expiryDate.toISOString().split('.')[0] + '+00:00';
     console.log(`Token expiry date set to: ${formattedExpiryDate}`);
 
     console.log('Token generation process completed successfully.');
-    
+
     return { 
         access_token: sha256Token, 
         expiry: formattedExpiryDate 
     };
 }
+
 
 async function generateAndStoreToken(accountNumber) {
     console.log('Generating a new SHA-256 token.');

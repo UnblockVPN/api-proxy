@@ -1,4 +1,5 @@
 //utils.js
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { createClient } = require('@supabase/supabase-js');
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -9,6 +10,85 @@ class UtilsEmitter extends EventEmitter {}
 const utilsEmitter = new UtilsEmitter();
 const fs = require('fs');
 const ip = require('ip');
+
+// Function to generate a SHA-256 token and return it with an expiry date
+async function generateToken(accountNumber) {
+    console.log(`Starting token generation process for account number: ${accountNumber}`);
+    console.log(`Received account number for token generation: Type - ${typeof accountNumber}, Value - ${accountNumber}`);
+
+    // Generate and store SHA-256 token
+    console.log('Calling generateAndStoreToken to create a new SHA-256 token.');
+    const tokenData = await generateAndStoreToken(accountNumber);  // Pass accountNumber here
+    if (!tokenData) {
+        console.error('Failed to generate SHA-256 token');
+        return null;
+    }
+    const sha256Token = tokenData.cryptotoken;
+    console.log(`SHA-256 token generated and stored successfully: ${sha256Token}`);
+
+    // Calculate expiry date (24 hours from now or your desired duration)
+    console.log('Calculating expiry date for the token.');
+    const expiryDate = new Date();
+    expiryDate.setHours(expiryDate.getHours() + 24);  // Set token expiry
+
+    // Format the expiry date
+    const formattedExpiryDate = expiryDate.toISOString().replace('Z', '+00:00');
+    console.log(`Token expiry date set to: ${formattedExpiryDate}`);
+
+    console.log('Token generation process completed successfully.');
+    
+    return { 
+        access_token: sha256Token, 
+        expiry: formattedExpiryDate 
+    };
+}
+
+async function generateAndStoreToken(accountNumber) {
+    console.log('Generating a new SHA-256 token.');
+
+    // Generate a random SHA-256 hash
+    const hash = crypto.createHash('sha256').update(crypto.randomBytes(20)).digest('hex');
+    const token = `mva_${hash}`;
+    console.log(`Generated token: ${token}`);
+
+    // Check if the token already exists in the database
+    console.log('Checking if the token already exists in the database.');
+    let { data: existingTokens, error } = await supabase
+        .from('accounts')
+        .select('cryptotoken')
+        .eq('cryptotoken', token);
+
+    if (error) {
+        console.error('Error checking for existing token:', error.message);
+        return;
+    }
+
+    // If any token is found with this hash, it's not available
+    if (existingTokens.length > 0) {
+        console.log('Token already exists. Generating a new one.');
+        return generateAndStoreToken(accountNumber);
+    }
+
+    console.log(`Updating token in database for account number: ${accountNumber}`);
+    const { data: updatedData, error: updateError } = await supabase
+        .from('accounts')
+        .update({ cryptotoken: token })
+        .eq('account_number', accountNumber)
+        .select();
+
+    if (updateError) {
+        console.error('Error updating token:', updateError.message);
+        return;
+    }
+
+    if (updatedData && updatedData.length > 0) {
+        console.log('Token updated successfully:', updatedData);
+        return { cryptotoken: token };
+    } else {
+        console.log(`No data returned on update. Data: ${JSON.stringify(updatedData)}, Account Number: ${accountNumber}`);
+    }
+}
+
 
 // Helper Function: Check if Maximum Devices Reached
 async function checkMaxDevicesReached(accountNumber, maxDevices) {
@@ -85,27 +165,6 @@ async function isIpV4Available(ipAddress) {
 //utilsEmitter.emit('update', { type: 'newCustomer', ... });
 
 
-// Function to generate a JWT with account number and device ID
-function generateToken(accountNumber) {
-    const payload = {
-        accountNumber: accountNumber, // Include account number in payload
-        // Add any other payload data you need
-    };
-
-    const secret = process.env.JWT_SECRET;
-    const options = { expiresIn: '24h' }; // Token expires in 24 hours
-    const token = jwt.sign(payload, secret, options);
-    console.log(`Token generated for account number ${accountNumber}`);
-
-    // Calculate expiry date (24 hours from now)
-    const expiryDate = new Date();
-    expiryDate.setHours(expiryDate.getHours() + 24);
-
-    // Format the expiry date
-    const formattedExpiryDate = expiryDate.toISOString().replace('Z', '+00:00');
-
-    return { token, formattedExpiryDate };
-}
 
 // Middleware to authenticate JWT
 function authenticateToken(req, res, next) {
@@ -302,6 +361,7 @@ module.exports = {
     utilsEmitter,
     getRandomFunnyWords,
     allocateIpV4Address,
-    checkMaxDevicesReached
+    checkMaxDevicesReached,
+    generateAndStoreToken
 };
 

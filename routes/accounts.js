@@ -152,45 +152,46 @@ router.get('/v1/devices/:id', async (req, res) => {
 
 
 // GET /accounts/v1/accounts/me
-
-
 router.get('/v1/accounts/me', authenticateWithToken, async (req, res) => {
     try {
-        const accountNumber = req.user.accountNumber;
-        console.log(`Fetching account data for account number: ${accountNumber}`);
+        console.log('accounts.js: Received GET request for /accounts/v1/accounts/me');
+        const token = req.user.token;
+        console.log(`accounts.js: Token from request: ${token}`);
 
         const { data, error } = await supabase
             .from('accounts')
             .select('*')
-            .eq('account_number', accountNumber)
-            .maybeSingle();
+            .eq('cryptotoken', token);
 
         if (error) {
-            console.error('Error fetching account data:', error.message);
+            console.error('accounts.js: Error fetching account data:', error.message);
             return res.status(500).send('Error retrieving account information');
         }
 
-        if (data) {
-            console.log(`Account data retrieved successfully: ${JSON.stringify(data)}`);
+        if (data && data.length > 0) {
+            const account = data[0];
+            console.log(`accounts.js: Account data retrieved successfully for token: ${token}`);
             const response = {
-                id: data.id,
-                expiry: formatDate(new Date(data.created_at)), // Assuming expiry is based on created_at
-                max_ports: parseInt(data.max_ports) || 0,
-                can_add_ports: data.can_add_ports === 'true',
-                max_devices: parseInt(data.max_devices) || 5,
-                can_add_devices: data.can_add_devices === 'true'
+                id: account.id,
+                expiry: formatDate(new Date(account.created_at)),
+                max_ports: parseInt(account.max_ports, 10) || 0,
+                can_add_ports: account.can_add_ports === 'true',
+                max_devices: parseInt(account.max_devices, 10) || 5,
+                can_add_devices: account.can_add_devices === 'true'
             };
 
             return res.json(response);
         } else {
-            console.log('Account not found for the given account number');
+            console.log(`accounts.js: No account found for token: ${token}`);
             return res.status(404).send('Account not found');
         }
     } catch (error) {
-        console.error('Error in GET /accounts/v1/accounts/me:', error.message);
+        console.error('accounts.js: Error in GET /accounts/v1/accounts/me:', error.message);
         res.status(500).send('Error while processing request');
     }
 });
+
+
 
 
 

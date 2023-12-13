@@ -196,6 +196,7 @@ function formatDate(date) {
         }
         return number;
     }
+
     return date.getUTCFullYear() +
         '-' + pad(date.getUTCMonth() + 1) +
         '-' + pad(date.getUTCDate()) +
@@ -204,6 +205,11 @@ function formatDate(date) {
         ':' + pad(date.getUTCSeconds()) +
         '+00:00'; // Time zone offset for UTC
 }
+
+
+
+
+
 
 // Helper Function: Generate Account Number
 function generateAccountNumber() {
@@ -354,31 +360,42 @@ async function insertDevice(newUuid, accountNumber, pubkey, hijack_dns, name, ip
 
 
 
+// Function to authenticate with token
 async function authenticateWithToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
+    console.log(`utils.js: Received token for authentication: ${token}`);
 
     if (!token) {
+        console.log('utils.js: No token provided in request');
         return res.status(401).send('No token provided');
     }
 
     try {
+        console.log(`utils.js: Validating token against database: ${token}`);
         const { data, error } = await supabase
             .from('accounts')
             .select('account_number')
             .eq('cryptotoken', token);
 
-        if (error || data.length === 0) {
-            return res.status(403).send('Invalid token');
+        if (error) {
+            console.error('utils.js: Error validating token:', error.message);
+            return res.status(500).send('Error validating token');
         }
 
-        req.user = { accountNumber: data[0].account_number };
-        next();
+        if (data && data.length > 0) {
+            console.log(`utils.js: Token validated successfully. Account number: ${data[0].account_number}`);
+            req.user = { accountNumber: data[0].account_number };
+            next();
+        } else {
+            console.log('utils.js: Invalid token: No matching account found');
+            res.status(403).send('Invalid token');
+        }
     } catch (err) {
+        console.error('utils.js: Exception when validating token:', err.message);
         res.status(500).send('Error validating token');
     }
 }
-
 
 
 

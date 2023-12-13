@@ -48,7 +48,7 @@ router.post('/v1/accounts', async (req, res) => {
 
 
 // POST /accounts/v1/devices
-router.post('/v1/devices', authenticateToken, async (req, res) => {
+router.post('/v1/devices', authenticateWithToken, async (req, res) => {
     console.log('accounts.js: Received POST request for /accounts/v1/devices');
 
     try {

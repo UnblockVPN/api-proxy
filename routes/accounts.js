@@ -47,12 +47,24 @@ router.post('/v1/accounts', async (req, res) => {
 
 
 
+
+
+
+
+
+
+
+
 // POST /accounts/v1/devices
 router.post('/v1/devices', authenticateWithToken, async (req, res) => {
     console.log('accounts.js: Received POST request for /accounts/v1/devices');
 
     try {
-        const accountNumber = req.user.accountNumber.accountId;
+        const accountNumber = req.user.accountNumber;
+        if (!accountNumber) {
+            return res.status(500).send('Account number not found in token');
+        }
+
         const { pubkey, hijack_dns } = req.body;
         console.log(`accounts.js: Account number from token: ${accountNumber}, pubkey: ${pubkey}, hijack_dns: ${hijack_dns}`);
 

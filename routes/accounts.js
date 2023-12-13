@@ -155,13 +155,13 @@ router.get('/v1/devices/:id', async (req, res) => {
 router.get('/v1/accounts/me', authenticateWithToken, async (req, res) => {
     try {
         console.log('accounts.js: Received GET request for /accounts/v1/accounts/me');
-        const token = req.user.token;
-        console.log(`accounts.js: Token from request: ${token}`);
+        const accountNumber = req.user.accountNumber;
+        console.log(`accounts.js: Account number from token: ${accountNumber}`);
 
         const { data, error } = await supabase
             .from('accounts')
             .select('*')
-            .eq('cryptotoken', token);
+            .eq('account_number', accountNumber);
 
         if (error) {
             console.error('accounts.js: Error fetching account data:', error.message);
@@ -170,7 +170,7 @@ router.get('/v1/accounts/me', authenticateWithToken, async (req, res) => {
 
         if (data && data.length > 0) {
             const account = data[0];
-            console.log(`accounts.js: Account data retrieved successfully for token: ${token}`);
+            console.log(`accounts.js: Account data retrieved successfully for account number: ${accountNumber}`);
             const response = {
                 id: account.id,
                 expiry: formatDate(new Date(account.created_at)),
@@ -182,7 +182,7 @@ router.get('/v1/accounts/me', authenticateWithToken, async (req, res) => {
 
             return res.json(response);
         } else {
-            console.log(`accounts.js: No account found for token: ${token}`);
+            console.log(`accounts.js: No account found for account number: ${accountNumber}`);
             return res.status(404).send('Account not found');
         }
     } catch (error) {
@@ -190,6 +190,7 @@ router.get('/v1/accounts/me', authenticateWithToken, async (req, res) => {
         res.status(500).send('Error while processing request');
     }
 });
+
 
 
 

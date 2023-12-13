@@ -378,6 +378,8 @@ async function authenticateWithToken(req, res, next) {
             .select('account_number')
             .eq('cryptotoken', token);
 
+        console.log(`utils.js: Response from token validation: Data - ${JSON.stringify(data)}, Error - ${JSON.stringify(error)}`);
+
         if (error) {
             console.error('utils.js: Error validating token:', error.message);
             return res.status(500).send('Error validating token');
@@ -396,6 +398,7 @@ async function authenticateWithToken(req, res, next) {
         res.status(500).send('Error validating token');
     }
 }
+
 
 
 

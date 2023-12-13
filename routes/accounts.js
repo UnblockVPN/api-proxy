@@ -243,7 +243,7 @@ router.get('/v1/accounts/me', authenticateWithToken, async (req, res) => {
             console.log(`accounts.js: Account data retrieved successfully for account number: ${accountNumber}`);
             const response = {
                 id: account.id,
-                expiry: formatDate(new Date(account.created_at)),
+                expiry: formatDate(new Date(account.expiry)),
                 max_ports: parseInt(account.max_ports, 10) || 0,
                 can_add_ports: account.can_add_ports === 'true',
                 max_devices: parseInt(account.max_devices, 10) || 5,

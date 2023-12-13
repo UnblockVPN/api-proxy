@@ -6,7 +6,7 @@ const { createClient } = require('@supabase/supabase-js');
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
-const { formatDate, getRandomFunnyWords, checkMaxDevicesReached, allocateIpV4Address, generateAccountNumber,authenticateToken, insertAccount , insertDevice, checkAccountExists } = require('../utils');
+const { formatDate, getRandomFunnyWords, authenticateWithToken, checkMaxDevicesReached, allocateIpV4Address, generateAccountNumber,authenticateToken, insertAccount , insertDevice, checkAccountExists } = require('../utils');
 
 // POST /accounts/v1/accounts
 router.post('/v1/accounts', async (req, res) => {
@@ -140,17 +140,48 @@ router.get('/v1/devices/:id', async (req, res) => {
 
 
 // GET /accounts/v1/accounts/me
-router.get('/v1/accounts/me', (req, res) => {
-    const response = {
-        id: "d8ca65f2-335c-4c0a-a6d7-2d4fd01bffa9",
-        expiry: "2023-12-26T15:30:13+00:00",
-        max_ports: 0,
-        can_add_ports: false,
-        max_devices: 5,
-        can_add_devices: true
-    };
 
-    res.json(response);
+
+router.get('/v1/accounts/me', authenticateWithToken, async (req, res) => {
+    try {
+        const accountNumber = req.user.accountNumber;
+        console.log(`Fetching account data for account number: ${accountNumber}`);
+
+        const { data, error } = await supabase
+            .from('accounts')
+            .select('*')
+            .eq('account_number', accountNumber)
+            .maybeSingle();
+
+        if (error) {
+            console.error('Error fetching account data:', error.message);
+            return res.status(500).send('Error retrieving account information');
+        }
+
+        if (data) {
+            console.log(`Account data retrieved successfully: ${JSON.stringify(data)}`);
+            const response = {
+                id: data.id,
+                expiry: formatDate(new Date(data.created_at)), // Assuming expiry is based on created_at
+                max_ports: parseInt(data.max_ports) || 0,
+                can_add_ports: data.can_add_ports === 'true',
+                max_devices: parseInt(data.max_devices) || 5,
+                can_add_devices: data.can_add_devices === 'true'
+            };
+
+            return res.json(response);
+        } else {
+            console.log('Account not found for the given account number');
+            return res.status(404).send('Account not found');
+        }
+    } catch (error) {
+        console.error('Error in GET /accounts/v1/accounts/me:', error.message);
+        res.status(500).send('Error while processing request');
+    }
 });
+
+
+
+
 
 module.exports = router;

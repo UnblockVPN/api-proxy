@@ -348,6 +348,42 @@ async function insertDevice(newUuid, accountNumber, pubkey, hijack_dns, name, ip
     }
 }
 
+async function authenticateWithToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; // Extract Bearer token
+    console.log(`Received token: ${token}`);
+
+    if (!token) {
+        console.log('No token provided in request');
+        return res.status(401).send('No token provided');
+    }
+
+    try {
+        console.log(`Validating token against database: ${token}`);
+        const { data, error } = await supabase
+            .from('accounts')
+            .select('account_number')
+            .eq('cryptotoken', token);
+
+        if (error) {
+            console.error('Error validating token:', error.message);
+            return res.status(500).send('Error validating token');
+        }
+
+        if (data && data.length > 0) {
+            console.log(`Token validated successfully. Account number: ${data[0].account_number}`);
+            req.user = { accountNumber: data[0].account_number };
+            next();
+        } else {
+            console.log('Invalid token: No matching account found');
+            res.status(403).send('Invalid token');
+        }
+    } catch (err) {
+        console.error('Token validation error:', err);
+        res.status(500).send('Error validating token');
+    }
+}
+
 
 
 module.exports = {
@@ -362,6 +398,7 @@ module.exports = {
     getRandomFunnyWords,
     allocateIpV4Address,
     checkMaxDevicesReached,
-    generateAndStoreToken
+    generateAndStoreToken,
+    authenticateWithToken
 };
 

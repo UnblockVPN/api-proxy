@@ -1,6 +1,5 @@
 //utils.js
 const crypto = require('crypto');
-const jwt = require('jsonwebtoken');
 const { createClient } = require('@supabase/supabase-js');
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
@@ -10,6 +9,141 @@ class UtilsEmitter extends EventEmitter {}
 const utilsEmitter = new UtilsEmitter();
 const fs = require('fs');
 const ip = require('ip');
+
+async function validateVoucher(voucherCode, accountNumber) {
+    console.log(`utils.js: Starting voucher validation for code: ${voucherCode}`);
+
+    try {
+        const { data: voucherData, error: voucherError } = await supabase
+            .from('vouchers')
+            .select('duration_months')
+            .eq('code', voucherCode)
+            .maybeSingle();
+
+        if (voucherError) {
+            console.error(`utils.js: Error while fetching voucher: ${voucherError.message}`);
+            return { isValid: false, error: voucherError };
+        }
+
+        if (!voucherData) {
+            console.log(`utils.js: No voucher found with code: ${voucherCode}`);
+            return { isValid: false, error: 'Voucher not found' };
+        }
+
+        if (voucherData.is_used) {
+            console.log(`utils.js: Voucher ${voucherCode} has already been redeemed.`);
+            return { isValid: false, error: 'Voucher already redeemed' };
+        }
+
+        // Ensure that voucherData.duration_months is a valid number
+        const durationMonths = parseFloat(voucherData.duration_months);
+
+        if (!isNaN(durationMonths)) {
+            // Calculate the duration in seconds accurately
+            const durationInSeconds = durationMonths * 30 * 24 * 60 * 60; // Convert months to seconds
+            console.log(`utils.js: Voucher ${voucherCode} is valid and not yet redeemed.`);
+            return { 
+                isValid: true, 
+                accountNumber: accountNumber, // Or retrieve from voucherData if necessary
+                duration: durationInSeconds // Use the calculated duration
+            };
+        } else {
+            console.error(`utils.js: Invalid duration in voucher data: ${voucherData.duration_months}`);
+            return { isValid: false, error: 'Invalid duration in voucher data' };
+        }
+    } catch (error) {
+        console.error(`utils.js: Exception occurred in validateVoucher: ${error.message}`);
+        return { isValid: false, error };
+    }
+}
+
+async function redeemVoucher(accountNumber, durationInSeconds, voucherCode) {
+    console.log(`utils.js: Redeeming voucher for account number: ${accountNumber} with duration: ${durationInSeconds} seconds for voucher code: ${voucherCode}`);
+
+    try {
+        const { data: accountData, error: accountError } = await supabase
+            .from('accounts')
+            .select('expiry')
+            .eq('account_number', accountNumber)
+            .maybeSingle();
+
+        if (accountError || !accountData) {
+            console.error(`utils.js: Error fetching account details for account: ${accountNumber}, Error: ${JSON.stringify(accountError)}`);
+            return null;
+        }
+
+        let newExpiry = new Date(accountData.expiry || new Date());
+        newExpiry.setSeconds(newExpiry.getSeconds() + durationInSeconds);
+
+        // Format the date to match the required format "2023-12-13T11:12:50+00:00"
+        const formattedNewExpiry = newExpiry.toISOString();
+
+        console.log(`utils.js: Fetched account details successfully for account: ${accountNumber}`);
+
+        try {
+            const { data: updatedAccountData, error: updatedAccountError } = await supabase
+                .from('accounts')
+                .update({ expiry: formattedNewExpiry })
+                .eq('account_number', accountNumber)
+                .select();
+
+            if (updatedAccountError) {
+                console.error(`utils.js: Error updating account expiry for account: ${accountNumber}, Error: ${JSON.stringify(updatedAccountError)}`);
+                return null;
+            }
+
+            if (!updatedAccountData) {
+                console.error(`utils.js: Account update did not return data for account: ${accountNumber}`);
+                return null;
+            }
+
+            console.log(`utils.js: Account expiry updated successfully for account: ${accountNumber}`);
+            
+            // Now, update the voucher information
+            const { data: updatedVoucherData, error: updatedVoucherError } = await supabase
+                .from('vouchers')
+                .update({
+                    is_used: true,
+                    associated_account: accountNumber,
+                    used_at: new Date().toISOString()
+                })
+                .eq('code', voucherCode)
+                .select();
+
+            if (updatedVoucherError) {
+                console.error(`utils.js: Error updating voucher for code: ${voucherCode}, Error: ${JSON.stringify(updatedVoucherError)}`);
+                return null;
+            }
+
+            if (!updatedVoucherData) {
+                console.error(`utils.js: Voucher update did not return data for code: ${voucherCode}`);
+                return null;
+            }
+
+            console.log(`utils.js: Voucher updated successfully for code: ${voucherCode}`);
+            
+            return { newExpiry: formattedNewExpiry };
+        } catch (updateError) {
+            console.error(`utils.js: Error occurred during account expiry or voucher update for account: ${accountNumber}, Error: ${updateError.message}`);
+            return null;
+        }
+    } catch (error) {
+        console.error(`utils.js: Exception occurred in redeemVoucher: ${error.message}`);
+        return null;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Function to generate a SHA-256 token and return it with an expiry date
 async function generateToken(accountNumber) {
@@ -160,33 +294,6 @@ async function isIpV4Available(ipAddress) {
 }
 
 
-
-// Somewhere in your utils.js, emit events
-//utilsEmitter.emit('update', { type: 'newCustomer', ... });
-
-
-
-// Middleware to authenticate JWT
-function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if (token == null) {
-        console.log('No token provided');
-
-        return res.sendStatus(401); // No token provided
-    }
-
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) {
-            console.log('Token verification failed:', err.message);
-
-            return res.sendStatus(403); // Invalid token
-        }
-        req.user = user;
-        next();
-    });
-}
 
 
 function formatDate(date) {
@@ -414,13 +521,14 @@ module.exports = {
     checkAccountExists,
     insertAccount,
     generateToken,
-    authenticateToken,
     insertDevice,
     utilsEmitter,
     getRandomFunnyWords,
     allocateIpV4Address,
     checkMaxDevicesReached,
     generateAndStoreToken,
-    authenticateWithToken
+    authenticateWithToken,
+    validateVoucher,
+    redeemVoucher
 };
 

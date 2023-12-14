@@ -3,11 +3,60 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const router = express.Router();
-const { formatDate, authenticateToken, generateAccountNumber,insertAccount , checkAccountExists } = require('../utils');
+const { validateVoucher, redeemVoucher, authenticateWithToken} = require('../utils');
 const { createClient } = require('@supabase/supabase-js');
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+
+
+// POST /app/v1/submit-voucher
+router.post('/v1/submit-voucher', authenticateWithToken, async (req, res) => {
+    try {
+        // Extracting accountNumber from the user object
+        const accountNumber = req.user.accountNumber;
+        console.log(`resources.js: Received POST request for /app/v1/submit-voucher with account number: ${accountNumber}`);
+
+        // Validate the provided voucher code
+        const voucherCode = req.body.voucher_code;
+        console.log(`resources.js: Validating voucher code: ${voucherCode}`);
+        const voucherValidation = await validateVoucher(voucherCode, accountNumber);
+
+        if (!voucherValidation.isValid) {
+            console.log(`resources.js: Invalid voucher code: ${voucherCode}`);
+            return res.status(400).send('Invalid voucher code');
+        }
+        console.log(`resources.js: Voucher code validation returned: isValid - ${voucherValidation.isValid}, accountNumber - ${voucherValidation.accountNumber}, duration - ${voucherValidation.duration}`);
+
+        // Redeem the voucher and update the account's expiry
+        const updatedAccount = await redeemVoucher(accountNumber, voucherValidation.duration, voucherCode);
+        if (!updatedAccount) {
+            console.log('resources.js: Error updating account with new expiry date');
+            return res.status(500).send('Error updating account');
+        }
+
+        console.log(`resources.js: Account updated successfully. Account Number: ${accountNumber}, New Expiry: ${updatedAccount.newExpiry}`);
+        res.status(200).json({
+            time_added: voucherValidation.duration,
+            new_expiry: updatedAccount.newExpiry
+        });
+    } catch (error) {
+        console.error(`resources.js: Error in /app/v1/submit-voucher: ${error.message}`);
+        res.status(500).send('Error processing voucher submission');
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -77,46 +126,4 @@ router.post('/v1/www-auth-token', (req, res) => {
 });
 
 
-router.post('/v1/submit-voucher', authenticateToken, async (req, res) => {
-    const { voucher_code } = req.body;
-
-    try {
-        // Check if voucher code exists and its status
-        let { data: voucherData, error } = await supabase
-            .from('voucher_codes')
-            .select('*')
-            .eq('voucher_number', voucher_code)
-            .single();
-
-        if (error || !voucherData) {
-            return res.status(404).send('Voucher code not found');
-        }
-
-        if (voucherData.status !== 'active' || voucherData.new_expiry != null) {
-            return res.status(400).send('Voucher code already redeemed or not active');
-        }
-
-        // Calculate new expiry date based on the 'amount' (months) column
-        const newExpiryDate = new Date();
-        newExpiryDate.setMonth(newExpiryDate.getMonth() + voucherData.amount);
-
-        // Update voucher code with new expiry and status
-        const { error: updateError } = await supabase
-            .from('voucher_codes')
-            .update({ new_expiry: newExpiryDate.toISOString().replace('Z', '+00:00'), status: 'redeemed' })
-            .eq('voucher_number', voucher_code);
-
-        if (updateError) {
-            throw updateError;
-        }
-
-        res.json({
-            time_added: voucherData.amount * 2592000, // Assuming 1 month = 30 days
-            new_expiry: newExpiryDate.toISOString().replace('Z', '+00:00')
-        });
-    } catch (error) {
-        console.error('Error submitting voucher:', error);
-        res.status(500).send('Error processing voucher submission');
-    }
-});
 module.exports = router;

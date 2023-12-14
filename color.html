@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Color Palette</title>
+    <style>
+        .color-box-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 10px;
+        }
+
+        .color-box {
+            width: 300px; /* Make the color boxes 3 times wider */
+            height: 200px; /* Set the color boxes' height to 200 pixels */
+            text-align: center;
+            position: relative;
+        }
+
+        .color-name-box, .rgb-box {
+            margin-top: 10px;
+            background-color: white; /* Fill color boxes with white background */
+            padding: 10px; /* Increase padding for better spacing */
+        }
+
+        .color-name {
+            font-size: 18px; /* Increase font size for color names */
+            font-weight: bold;
+            color: white; /* Make color names white */
+        }
+
+        .rgb-box {
+            background-color: white; /* Fill RGB boxes with white background */
+            color: black; /* Change text color to black */
+            font-size: 16px; /* Increase font size for RGB values */
+        }
+
+        /* Define colors */
+        .primary {
+            background-color: rgba(41, 74, 114, 1.0); /* Replace with Primary backgroundColor */
+        }
+
+        .secondary {
+            background-color: rgba(26, 46, 69, 1.0); /* Replace with Secondary backgroundColor */
+        }
+
+        .danger {
+            background-color: rgba(227, 64, 56, 1.0); /* Replace with Danger backgroundColor */
+        }
+
+        .warning {
+            background-color: rgba(255, 214, 36, 1.0); /* Replace with Warning backgroundColor */
+        }
+
+        .success {
+            background-color: rgba(69, 175, 75, 1.0); /* Replace with Success backgroundColor */
+        }
+
+        /* Define SubCell and SubSubCell colors */
+        .sub-cell {
+            background-color: rgba(38, 59, 84, 1.0); /* Replace with SubCell backgroundColor */
+        }
+
+        .sub-sub-cell {
+            background-color: rgba(34, 51, 77, 1.0); /* Replace with SubSubCell backgroundColor */
+        }
+    </style>
+</head>
+<body>
+    <!-- Primary Color Box -->
+    <div class="color-box-container">
+        <div class="color-box primary">
+            <div class="color-name">Primary</div>
+        </div>
+        <div class="color-name-box">
+            <div class="rgb-label">RGB: 41, 74, 114</div>
+        </div>
+    </div>
+
+    <!-- Secondary Color Box -->
+    <div class="color-box-container">
+        <div class="color-box secondary">
+            <div class="color-name">Secondary</div>
+        </div>
+        <div class="color-name-box">
+            <div class="rgb-label">RGB: 26, 46, 69</div>
+        </div>
+    </div>
+
+    <!-- Danger Color Box -->
+    <div class="color-box-container">
+        <div class="color-box danger">
+            <div class="color-name">Danger</div>
+        </div>
+        <div class="color-name-box">
+            <div class="rgb-label">RGB: 227, 64, 56</div>
+        </div>
+    </div>
+
+    <!-- Warning Color Box -->
+    <div class="color-box-container">
+        <div class="color-box warning">
+            <div class="color-name">Warning</div>
+        </div>
+        <div class="color-name-box">
+            <div class="rgb-label">RGB: 255, 214, 36</div>
+        </div>
+    </div>
+
+    <!-- Success Color Box -->
+    <div class="color-box-container">
+        <div class="color-box success">
+            <div class="color-name">Success</div>
+        </div>
+        <div class="color-name-box">
+            <div class="rgb-label">RGB: 69, 175, 75</div>
+        </div>
+    </div>
+
+    <!-- SubCell Color Box -->
+    <div class="color-box-container">
+        <div class="color-box sub-cell">
+            <div class="color-name">SubCell</div>
+        </div>
+        <div class="color-name-box">
+            <div class="rgb-label">RGB: 38, 59, 84</div>
+        </div>
+    </div>
+
+    <!-- SubSubCell Color Box -->
+    <div class="color-box-container">
+        <div class="color-box sub-sub-cell">
+            <div class="color-name">SubSubCell</div>
+        </div>
+        <div class="color-name-box">
+            <div class="rgb-label">RGB: 34, 51, 77</div>
+        </div>
+    </div>
+</body>
+</html>

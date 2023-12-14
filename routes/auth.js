@@ -3,11 +3,12 @@ const { createClient } = require('@supabase/supabase-js');
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
-const { generateToken, checkAccountExists } = require('../utils');
+const { generateToken, validateVoucher,checkAccountExists } = require('../utils');
 const express = require('express');
 const router = express.Router();
 
-// Include other necessary dependencies if needed
+
+
 
 router.post('/v1/token', async (req, res) => {
     const { account_number } = req.body;

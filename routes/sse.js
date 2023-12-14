@@ -13,7 +13,7 @@ router.get('/events', (req, res) => {
     // Check if the connection is from localhost (127.0.0.1 or ::1)
     if (clientIP === '127.0.0.1' || clientIP === '::1') {
         console.log(`SSE connection from localhost (${clientIP}) blocked.`);
-        res.status(403).end(); // Return a forbidden status to block the connection
+        //res.status(403).end(); // Return a forbidden status to block the connection
         return;
     }
 

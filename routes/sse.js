@@ -10,6 +10,8 @@ const { utilsEmitter } = require('../utils');
 
 // SSE endpoint
 router.get('/events', (req, res) => {
+        // Log the client's IP address when they connect
+        console.log(`SSE connection established from IP: ${req.ip}`);
     console.log('SSE connection established');
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -41,8 +43,11 @@ router.get('/events', (req, res) => {
     // Handle client disconnection
     req.on('close', () => {
         console.log('Client disconnected from SSE');
+        console.log(`Client at IP: ${req.ip} disconnected from SSE`);
         utilsEmitter.off('update', onInternalEvent);
-        channel.unsubscribe();
+        channel.unsubscribe().catch((error) => {
+            console.error(`Error during unsubscription: ${error.message}`);
+        });
     });
 });
 

@@ -1,4 +1,3 @@
-//events.js
 const express = require('express');
 const router = express.Router();
 const { createClient } = require('@supabase/supabase-js');
@@ -7,17 +6,22 @@ const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 const { utilsEmitter } = require('../utils');
 
-
 // SSE endpoint
 router.get('/events', (req, res) => {
-        // Log the client's IP address when they connect
-        console.log(`SSE connection established from IP: ${req.ip}`);
-    console.log('SSE connection established');
+    const clientIP = req.ip;
+    
+    // Check if the connection is from localhost (127.0.0.1 or ::1)
+    if (clientIP === '127.0.0.1' || clientIP === '::1') {
+        console.log(`SSE connection from localhost (${clientIP}) blocked.`);
+        res.status(403).end(); // Return a forbidden status to block the connection
+        return;
+    }
+
+    console.log(`SSE connection established from IP: ${clientIP}`);
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    // Set up event listener for internal events
     const onInternalEvent = (data) => {
         console.log('Sending event to client:', data);
         res.write(`data: ${JSON.stringify(data)}\n\n`);
@@ -25,28 +29,27 @@ router.get('/events', (req, res) => {
 
     utilsEmitter.on('update', onInternalEvent);
 
-    // Subscribe to Supabase channel for table changes
     const channel = supabase
-        .channel('public-devices') // Replace with your channel name
+        .channel('public-devices')
         .on(
             'postgres_changes',
             { event: '*', schema: 'public', table: 'sse_updates' },
             (payload) => {
-                console.log('Supabase change event:', payload);
                 utilsEmitter.emit('update', { type: payload.eventType, data: payload.new });
             }
         )
         .subscribe((error) => {
-            if (error) console.error('Error subscribing to Supabase channel:', error);
+            if (error) {
+                console.error('Error subscribing to Supabase channel:', error);
+                // Handle the error as needed
+            }
         });
 
-    // Handle client disconnection
     req.on('close', () => {
         console.log('Client disconnected from SSE');
-        console.log(`Client at IP: ${req.ip} disconnected from SSE`);
         utilsEmitter.off('update', onInternalEvent);
         channel.unsubscribe().catch((error) => {
-            console.error(`Error during unsubscription: ${error.message}`);
+            console.error('Error during unsubscription:', error.message);
         });
     });
 });

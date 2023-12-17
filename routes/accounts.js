@@ -9,17 +9,6 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const { formatDate, getRandomFunnyWords, validateVoucher, authenticateWithToken, checkMaxDevicesReached, allocateIpV4Address, generateAccountNumber, insertAccount , insertDevice, checkAccountExists } = require('../utils');
 
 
-
-
-
-
-
-
-
-
-
-
-
 // POST /accounts/v1/accounts
 router.post('/v1/accounts', async (req, res) => {
     try {

@@ -9,6 +9,40 @@ class UtilsEmitter extends EventEmitter {}
 const utilsEmitter = new UtilsEmitter();
 const fs = require('fs');
 const ip = require('ip');
+const axios = require('axios');
+
+// Function to verify Apple receipt
+async function verifyAppleReceipt(receiptString, isProduction = true) {
+    const endpoint = isProduction 
+        ? 'https://buy.itunes.apple.com/verifyReceipt' 
+        : 'https://sandbox.itunes.apple.com/verifyReceipt';
+
+    try {
+        const response = await axios.post(endpoint, {
+            'receipt-data': receiptString,
+            'password': process.env.APPLE_SHARED_SECRET, // Your app’s shared secret (a hexadecimal string).
+            'exclude-old-transactions': true // Set this to true for latest receipt info.
+        });
+
+        if (response.status === 200) {
+            // Apple returns status 0 for a valid receipt
+            if (response.data.status === 0) {
+                return { isValid: true, data: response.data };
+            } else {
+                // Handle various error codes (e.g., 21000 series errors)
+                return { isValid: false, error: response.data };
+            }
+        } else {
+            return { isValid: false, error: 'Failed to connect to Apple’s verification server' };
+        }
+    } catch (error) {
+        console.error('Error verifying Apple receipt:', error.message);
+        return { isValid: false, error: error.message };
+    }
+}
+
+
+
 
 async function validateVoucher(voucherCode, accountNumber) {
     console.log(`utils.js: Starting voucher validation for code: ${voucherCode}`);
@@ -529,6 +563,7 @@ module.exports = {
     generateAndStoreToken,
     authenticateWithToken,
     validateVoucher,
-    redeemVoucher
+    redeemVoucher,
+    verifyAppleReceipt
 };
 

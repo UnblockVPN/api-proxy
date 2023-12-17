@@ -3,11 +3,51 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const router = express.Router();
-const { validateVoucher, redeemVoucher, authenticateWithToken} = require('../utils');
+const { validateVoucher, redeemVoucher, authenticateWithToken, verifyAppleReceipt} = require('../utils');
 const { createClient } = require('@supabase/supabase-js');
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+router.post('/app/v1/create-apple-payment', authenticateWithToken, async (req, res) => {
+    const receiptString = req.body.receiptString;
+    const isProduction = true; // Or determine based on environment
+
+    if (!receiptString) {
+        return res.status(400).send('Receipt string is required');
+    }
+
+    // Verify the receipt with Apple
+    const receiptVerification = await verifyAppleReceipt(receiptString, isProduction);
+
+    try {
+        const token = req.user.token; // Extracted by authenticateWithToken middleware
+        const accountNumber = req.user.accountNumber; // Assuming account number is also part of user info
+
+        // Update the account with the Apple receipt and API response
+        const { error: updateError } = await supabase
+            .from('accounts')
+            .update({ 
+                apple_receipt: receiptString, 
+                apple_api_response: receiptVerification.data || receiptVerification.error // Store the full response or error
+            })
+            .eq('cryptotoken', token)
+            .eq('account_number', accountNumber); // Ensure this matches your database schema
+
+        if (updateError) {
+            console.error('Error updating account with Apple receipt and API response:', updateError.message);
+            return res.status(500).send('Failed to update account with receipt and API response');
+        }
+
+        res.status(200).send('Apple receipt and API response stored successfully');
+    } catch (error) {
+        console.error('Error in POST /app/v1/create-apple-payment:', error.message);
+        res.status(500).send('Error while processing request');
+    }
+});
+
+
+
 
 
 

@@ -12,15 +12,17 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 router.post('/v1/create-apple-payment', authenticateWithToken, async (req, res) => {
     console.log('resources.js: Received request to /app/v1/create-apple-payment');
 
-    const receiptString = req.body['receipt-data'];
+    // Extracting the receipt data using the key 'receipt_string'
+    const receiptString = req.body.receipt_string;
+
     if (!receiptString) {
-        console.warn('resources.js: No receipt data provided in the request');
-        return res.status(400).send('Receipt data is required');
+        console.warn('resources.js: No receipt string provided in the request');
+        return res.status(400).send('Receipt string is required');
     }
 
     try {
         console.log('resources.js: Attempting to verify Apple receipt');
-        const receiptVerification = await verifyAppleReceipt(receiptString, true); // true for production
+        const receiptVerification = await verifyAppleReceipt(receiptString, true); // Assuming true for production
 
         if (!receiptVerification.isValid) {
             console.warn('resources.js: Apple receipt validation failed', receiptVerification.error);
@@ -29,14 +31,14 @@ router.post('/v1/create-apple-payment', authenticateWithToken, async (req, res) 
 
         console.log('resources.js: Apple receipt validated successfully. Proceeding to update account');
 
-        const token = req.user.token;
-        const truncatedReceipt = receiptString.substring(0, 50) + '...'; // Truncate the receipt string
+        const token = req.user.token; // Extracted by authenticateWithToken middleware
+        const truncatedReceipt = receiptString.substring(0, 50) + '...'; // Truncate the receipt string for storage
 
         const { error: accountError } = await supabase
             .from('accounts')
             .update({ 
                 apple_receipt: truncatedReceipt, 
-                apple_api_response: JSON.stringify(receiptVerification.data) // Store the full response
+                apple_api_response: JSON.stringify(receiptVerification.data) // Store the full Apple response
             })
             .eq('cryptotoken', token);
 
@@ -52,6 +54,7 @@ router.post('/v1/create-apple-payment', authenticateWithToken, async (req, res) 
         res.status(500).send('Error while processing request');
     }
 });
+
 
 
 

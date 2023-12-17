@@ -17,28 +17,27 @@ async function verifyAppleReceipt(receiptString, isProduction = true) {
         ? 'https://buy.itunes.apple.com/verifyReceipt' 
         : 'https://sandbox.itunes.apple.com/verifyReceipt';
 
-    console.log('utils.js: Verifying receipt with Apple:', isProduction ? 'Production' : 'Sandbox');
+    console.log('utils.js: Sending receipt to Apple for verification');
 
     try {
+        // Log the receipt data being sent (consider truncating or encrypting for security)
+        console.log(`utils.js: Receipt data being sent: ${receiptString.substring(0, 100)}...`); // Truncated for security
+
         const response = await axios.post(endpoint, {
             'receipt-data': receiptString,
             'password': process.env.APPLE_SHARED_SECRET, // Your app’s shared secret
             'exclude-old-transactions': true
         });
 
-        console.log('utils.js: Response received from Apple verification server:', response.status);
+        // Log the full response from Apple
+        console.log(`utils.js: Response from Apple's verification server:`, response.data);
 
-        if (response.status === 200) {
-            if (response.data.status === 0) {
-                console.log('utils.js: Valid receipt received from Apple');
-                return { isValid: true, data: response.data };
-            } else {
-                console.warn('utils.js: Apple receipt validation failed with status:', response.data.status);
-                return { isValid: false, error: response.data };
-            }
+        if (response.status === 200 && response.data.status === 0) {
+            console.log('utils.js: Valid receipt received from Apple');
+            return { isValid: true, data: response.data };
         } else {
-            console.error('utils.js: Failed to connect to Apple’s verification server');
-            return { isValid: false, error: 'Failed to connect to Apple’s verification server' };
+            console.warn('utils.js: Apple receipt validation failed:', response.data);
+            return { isValid: false, error: response.data };
         }
     } catch (error) {
         console.error('utils.js: Error verifying Apple receipt:', error.message);

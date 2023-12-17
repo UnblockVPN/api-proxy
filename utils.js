@@ -17,29 +17,36 @@ async function verifyAppleReceipt(receiptString, isProduction = true) {
         ? 'https://buy.itunes.apple.com/verifyReceipt' 
         : 'https://sandbox.itunes.apple.com/verifyReceipt';
 
+    console.log('utils.js: Verifying receipt with Apple:', isProduction ? 'Production' : 'Sandbox');
+
     try {
         const response = await axios.post(endpoint, {
             'receipt-data': receiptString,
-            'password': process.env.APPLE_SHARED_SECRET, // Your app’s shared secret (a hexadecimal string).
-            'exclude-old-transactions': true // Set this to true for latest receipt info.
+            'password': process.env.APPLE_SHARED_SECRET, // Your app’s shared secret
+            'exclude-old-transactions': true
         });
 
+        console.log('utils.js: Response received from Apple verification server:', response.status);
+
         if (response.status === 200) {
-            // Apple returns status 0 for a valid receipt
             if (response.data.status === 0) {
+                console.log('utils.js: Valid receipt received from Apple');
                 return { isValid: true, data: response.data };
             } else {
-                // Handle various error codes (e.g., 21000 series errors)
+                console.warn('utils.js: Apple receipt validation failed with status:', response.data.status);
                 return { isValid: false, error: response.data };
             }
         } else {
+            console.error('utils.js: Failed to connect to Apple’s verification server');
             return { isValid: false, error: 'Failed to connect to Apple’s verification server' };
         }
     } catch (error) {
-        console.error('Error verifying Apple receipt:', error.message);
+        console.error('utils.js: Error verifying Apple receipt:', error.message);
         return { isValid: false, error: error.message };
     }
 }
+
+
 
 
 

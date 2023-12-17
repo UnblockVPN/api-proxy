@@ -400,15 +400,20 @@ async function checkAccountExists(accountNumber) {
     }
 }
 
-// Helper Function: Insert Account
-// utils.js
 async function insertAccount(accountNumber) {
     console.log(`utils.js: Attempting to insert account with number: ${accountNumber}`);
+
+    // Calculate the expiry date to be 24 hours from now
+    const expiry = new Date();
+    expiry.setHours(expiry.getHours() + 24);
 
     try {
         const { data: insertData, error: insertError } = await supabase
             .from('accounts')
-            .insert([{ account_number: accountNumber }])
+            .insert([{ 
+                account_number: accountNumber,
+                expiry: expiry.toISOString() // Set the expiry time
+            }])
             .single()
             .select('*'); 
 
@@ -417,28 +422,10 @@ async function insertAccount(accountNumber) {
             throw insertError;
         }
 
-        if (insertData) {
-            console.log(`utils.js: Inserted account data:`, insertData);
-            return { data: insertData };
-        } else {
-            console.log(`utils.js: No data returned on insert, querying for account data.`);
-            const { data: queryData, error: queryError } = await supabase
-                .from('accounts')
-                .select('*')
-                .eq('account_number', accountNumber)
-                .single()
-                .select('*'); 
-
-            if (queryError) {
-                console.error(`utils.js: Error querying inserted account:`, queryError);
-                throw queryError;
-            }
-
-            console.log(`utils.js: Queried account data:`, queryData);
-            return { data: queryData };
-        }
+        console.log(`utils.js: Inserted account with 24-hour trial:`, insertData);
+        return { data: insertData };
     } catch (error) {
-        console.error(`utils.js: Exception when inserting or querying account:`, error);
+        console.error(`utils.js: Exception when inserting account:`, error);
         return { error };
     }
 }

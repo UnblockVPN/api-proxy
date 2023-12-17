@@ -9,7 +9,7 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-router.post('/app/v1/create-apple-payment', authenticateWithToken, async (req, res) => {
+router.post('app/v1/create-apple-payment', authenticateWithToken, async (req, res) => {
     const receiptString = req.body.receiptString;
     const isProduction = true; // Or determine based on environment
 

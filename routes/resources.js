@@ -12,10 +12,10 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 router.post('/v1/create-apple-payment', authenticateWithToken, async (req, res) => {
     console.log('resources.js: Received request to /app/v1/create-apple-payment');
 
-    const receiptString = req.body.receipt_string;
+    const receiptString = req.body['receipt-data'];
     if (!receiptString) {
-        console.warn('resources.js: No receipt string provided in the request');
-        return res.status(400).send('Receipt string is required');
+        console.warn('resources.js: No receipt data provided in the request');
+        return res.status(400).send('Receipt data is required');
     }
 
     try {
@@ -29,24 +29,30 @@ router.post('/v1/create-apple-payment', authenticateWithToken, async (req, res) 
 
         console.log('resources.js: Apple receipt validated successfully. Proceeding to update account');
 
-        const token = req.user.token; // Extracted by authenticateWithToken middleware
-        const { data: accountData, error: accountError } = await supabase
+        const token = req.user.token;
+        const truncatedReceipt = receiptString.substring(0, 50) + '...'; // Truncate the receipt string
+
+        const { error: accountError } = await supabase
             .from('accounts')
-            .update({ apple_receipt: receiptData })
+            .update({ 
+                apple_receipt: truncatedReceipt, 
+                apple_api_response: JSON.stringify(receiptVerification.data) // Store the full response
+            })
             .eq('cryptotoken', token);
 
         if (accountError) {
-            console.error('resources.js: Error updating account with Apple receipt:', accountError.message);
-            return res.status(500).send('Failed to update account with receipt');
+            console.error('resources.js: Error updating account with Apple receipt and API response:', accountError.message);
+            return res.status(500).send('Failed to update account with receipt and API response');
         }
 
-        console.log('resources.js: Account updated successfully with Apple receipt');
-        res.status(200).send('Apple receipt stored successfully');
+        console.log('resources.js: Account updated successfully with Apple receipt and API response');
+        res.status(200).send('Apple receipt and API response stored successfully');
     } catch (error) {
-        console.error('resources.js: Error in POST /app/v1/create-apple-payment:', error.message);
+        console.error(`resources.js: Error in POST /app/v1/create-apple-payment: ${error.message}`);
         res.status(500).send('Error while processing request');
     }
 });
+
 
 
 

@@ -9,7 +9,7 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-router.post('/app/v1/create-apple-payment', authenticateWithToken, async (req, res) => {
+router.post('/v1/create-apple-payment', authenticateWithToken, async (req, res) => {
     console.log('resources.js: Received request to /app/v1/create-apple-payment');
 
     const receiptString = req.body.receiptString;

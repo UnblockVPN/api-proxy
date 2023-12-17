@@ -12,27 +12,29 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 router.post('/v1/create-apple-payment', authenticateWithToken, async (req, res) => {
     console.log('resources.js: Received request to /app/v1/create-apple-payment');
 
-    const receiptString = req.body.receiptString;
-    if (!receiptString) {
-        console.warn('resources.js: No receipt string provided in the request');
-        return res.status(400).send('Receipt string is required');
+    // Extracting the receipt data using the key 'receipt-data'
+    const receiptData = req.body['receipt-data'];
+
+    if (!receiptData) {
+        console.warn('resources.js: No receipt data provided in the request');
+        return res.status(400).send('Receipt data is required');
     }
 
     try {
         console.log('resources.js: Attempting to verify Apple receipt');
-        const receiptVerification = await verifyAppleReceipt(receiptString, true); // true for production
+        const receiptVerification = await verifyAppleReceipt(receiptData, true); // true for production
 
         if (!receiptVerification.isValid) {
             console.warn('resources.js: Apple receipt validation failed', receiptVerification.error);
             return res.status(400).send('Invalid Apple receipt');
         }
 
-        const token = req.user.token; // Extracted by authenticateWithToken middleware
-        console.log('resources.js: Token extracted, updating account information');
+        console.log('resources.js: Apple receipt validated successfully. Proceeding to update account');
 
+        const token = req.user.token; // Extracted by authenticateWithToken middleware
         const { data: accountData, error: accountError } = await supabase
             .from('accounts')
-            .update({ apple_receipt: receiptString })
+            .update({ apple_receipt: receiptData })
             .eq('cryptotoken', token);
 
         if (accountError) {

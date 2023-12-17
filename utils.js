@@ -11,26 +11,20 @@ const fs = require('fs');
 const ip = require('ip');
 const axios = require('axios');
 
-// Function to verify Apple receipt
 async function verifyAppleReceipt(receiptString, isProduction = true) {
-    const endpoint = isProduction 
+    let endpoint = isProduction 
         ? 'https://buy.itunes.apple.com/verifyReceipt' 
         : 'https://sandbox.itunes.apple.com/verifyReceipt';
 
-    console.log('utils.js: Sending receipt to Apple for verification');
-
     try {
-        // Log the receipt data being sent (consider truncating or encrypting for security)
-        console.log(`utils.js: Receipt data being sent: ${receiptString.substring(0, 100)}...`); // Truncated for security
-
-        const response = await axios.post(endpoint, {
-            'receipt-data': receiptString,
-            'password': process.env.APPLE_SHARED_SECRET, // Your app’s shared secret
-            'exclude-old-transactions': true
-        });
-
-        // Log the full response from Apple
-        console.log(`utils.js: Response from Apple's verification server:`, response.data);
+        let response = await sendReceiptToApple(endpoint, receiptString);
+        
+        // Check if the receipt is from the test environment but was sent to the production environment
+        if (response.status === 200 && response.data.status === 21007) {
+            console.log('utils.js: Receipt is from the sandbox but was sent to production, redirecting to sandbox');
+            endpoint = 'https://sandbox.itunes.apple.com/verifyReceipt';
+            response = await sendReceiptToApple(endpoint, receiptString);
+        }
 
         if (response.status === 200 && response.data.status === 0) {
             console.log('utils.js: Valid receipt received from Apple');
@@ -43,6 +37,14 @@ async function verifyAppleReceipt(receiptString, isProduction = true) {
         console.error('utils.js: Error verifying Apple receipt:', error.message);
         return { isValid: false, error: error.message };
     }
+}
+
+async function sendReceiptToApple(endpoint, receiptString) {
+    return await axios.post(endpoint, {
+        'receipt-data': receiptString,
+        'password': process.env.APPLE_SHARED_SECRET,
+        'exclude-old-transactions': true
+    });
 }
 
 

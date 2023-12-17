@@ -12,17 +12,15 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 router.post('/v1/create-apple-payment', authenticateWithToken, async (req, res) => {
     console.log('resources.js: Received request to /app/v1/create-apple-payment');
 
-    // Extracting the receipt data using the key 'receipt-data'
-    const receiptData = req.body['receipt-data'];
-
-    if (!receiptData) {
-        console.warn('resources.js: No receipt data provided in the request');
-        return res.status(400).send('Receipt data is required');
+    const receiptString = req.body.receipt_string;
+    if (!receiptString) {
+        console.warn('resources.js: No receipt string provided in the request');
+        return res.status(400).send('Receipt string is required');
     }
 
     try {
         console.log('resources.js: Attempting to verify Apple receipt');
-        const receiptVerification = await verifyAppleReceipt(receiptData, true); // true for production
+        const receiptVerification = await verifyAppleReceipt(receiptString, true); // true for production
 
         if (!receiptVerification.isValid) {
             console.warn('resources.js: Apple receipt validation failed', receiptVerification.error);

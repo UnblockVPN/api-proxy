@@ -69,7 +69,7 @@ router.post('/v1/devices', authenticateWithToken, async (req, res) => {
             .from('accounts')
             .select('account_number, max_devices')
             .eq('cryptotoken', token)
-            .select('*'); 
+            .maybeSingle();
 
         if (accountError || !accountData) {
             console.error('accounts.js: Error fetching account details or token not found');

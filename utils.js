@@ -414,8 +414,7 @@ async function insertAccount(accountNumber) {
                 account_number: accountNumber,
                 expiry: expiry.toISOString() // Set the expiry time
             }])
-            .single()
-            .select('*'); 
+            .select(); 
 
         if (insertError) {
             console.error(`utils.js: Error inserting account:`, insertError);
@@ -474,8 +473,7 @@ async function insertDevice(newUuid, accountNumber, pubkey, hijack_dns, name, ip
                 ipv4_address: ipv4_address,
                 ipv6_address: ipv6_address
             }])
-            .single()
-            .select('*'); 
+            .select(); 
 
         if (error) {
             console.error('Error inserting device:', error.message);

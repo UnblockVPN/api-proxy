@@ -51,77 +51,7 @@ router.post('/v1/accounts', async (req, res) => {
 
 
 
-// POST /accounts/v1/devices
-router.post('/v1/devices', authenticateWithToken, async (req, res) => {
-    console.log('accounts.js: Received POST request for /accounts/v1/devices');
 
-    try {
-        // Correctly retrieving the account number from the request object
-        const accountNumber = req.user.accountNumber;
-        console.log(`accounts.js: Account number from token: ${accountNumber}`);
-
-        if (!accountNumber) {
-            console.error('accounts.js: Account number not found in token');
-            return res.status(500).send('Account number not found in token');
-        }
-
-        const { pubkey, hijack_dns } = req.body;
-        console.log(`accounts.js: Pubkey: ${pubkey}, Hijack DNS: ${hijack_dns}`);
-
-        // Fetch the max devices allowed for the account
-        const { data: accountData, error: accountError } = await supabase
-            .from('accounts')
-            .select('max_devices')
-            .eq('account_number', accountNumber);
-
-        if (accountError || !accountData) {
-            console.error('accounts.js: Error fetching account details or account not found');
-            return res.status(500).send('Error fetching account details');
-        }
-
-        const maxDevices = parseInt(accountData.max_devices, 10);
-        console.log(`accounts.js: Max devices allowed for account: ${maxDevices}`);
-
-        // Check if the maximum number of devices has been reached
-        if (await checkMaxDevicesReached(accountNumber, maxDevices)) {
-            console.error(`accounts.js: Exceeded maximum number of devices for account: ${accountNumber}`);
-            return res.status(400).send('Exceeded maximum number of devices per account');
-        }
-
-        // Generate a unique device ID and insert the device
-        const deviceId = uuidv4();
-        console.log(`accounts.js: Generated device ID: ${deviceId}`);
-
-        // Generate a random name and allocate IP addresses
-        const name = getRandomFunnyWords();
-        const ipv4_address = await allocateIpV4Address();
-        const ipv6_address = "fc00:bbbb:bbbb:bb01:d:0:8:1727/128";
-
-        // Insert device details into the database
-        await insertDevice(deviceId, accountNumber, pubkey, hijack_dns, name, ipv4_address, ipv6_address);
-        console.log(`accounts.js: Device inserted with ID: ${deviceId}`);
-
-        // Format the created timestamp
-        const createdTimestamp = new Date().toISOString().split('.')[0] + '+00:00';
-
-        // Construct the response object
-        const response = {
-            id: deviceId,
-            name: name,
-            pubkey: pubkey,
-            hijack_dns: hijack_dns,
-            created: createdTimestamp,
-            ipv4_address: ipv4_address,
-            ipv6_address: ipv6_address,
-            ports: []
-        };
-
-        res.status(201).json(response);
-    } catch (error) {
-        console.error('accounts.js: Error in POST /accounts/v1/devices:', error.message);
-        res.status(500).send('accounts.js: Error while processing request');
-    }
-});
 
 
 
@@ -139,7 +69,7 @@ router.post('/v1/devices', authenticateWithToken, async (req, res) => {
             .from('accounts')
             .select('account_number, max_devices')
             .eq('cryptotoken', token)
-            .maybeSingle();
+            .select('*'); 
 
         if (accountError || !accountData) {
             console.error('accounts.js: Error fetching account details or token not found');

@@ -159,18 +159,6 @@ async function redeemVoucher(accountNumber, durationInSeconds, voucherCode) {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 // Function to generate a SHA-256 token and return it with an expiry date
 async function generateToken(accountNumber) {
     console.log(`Starting token generation process for account number: ${accountNumber}`);

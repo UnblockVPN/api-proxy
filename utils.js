@@ -12,6 +12,7 @@ const ip = require('ip');
 const axios = require('axios');
 
 async function getCurrentExpiry(accountNumber) {
+    console.log(`utils.js: Fetching current expiry for account ${accountNumber}`);
     const { data, error } = await supabase
         .from('accounts')
         .select('expiry')
@@ -19,18 +20,22 @@ async function getCurrentExpiry(accountNumber) {
         .single();
 
     if (error) {
-        console.error(`Error fetching current expiry for account ${accountNumber}: ${error.message}`);
+        console.error(`utils.js: Error fetching current expiry for account ${accountNumber}: ${error.message}`);
         throw error;
     }
 
-    return data ? new Date(data.expiry) : new Date();
+    const currentExpiry = data ? new Date(data.expiry) : new Date();
+    console.log(`utils.js: Current expiry for account ${accountNumber} is: ${currentExpiry}`);
+    return currentExpiry;
 }
 
 function addTimeToExpiry(expiryDate, timeInSeconds) {
+    console.log(`utils.js: Adding ${timeInSeconds} seconds to expiry date ${expiryDate}`);
     const newExpiry = new Date(expiryDate.getTime() + timeInSeconds * 1000);
-    return newExpiry.toISOString().split('.')[0] + '+00:00'; // Format as per requirement
+    const formattedNewExpiry = newExpiry.toISOString().split('.')[0] + '+00:00'; // Format as per requirement
+    console.log(`utils.js: New expiry date after addition is: ${formattedNewExpiry}`);
+    return formattedNewExpiry;
 }
-
 
 
 

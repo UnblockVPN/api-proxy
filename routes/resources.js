@@ -10,32 +10,37 @@ const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 router.post('/v1/create-apple-payment', authenticateWithToken, async (req, res) => {
-    console.log('Received request to /app/v1/create-apple-payment');
+    console.log('resources.js: Received request to /app/v1/create-apple-payment');
 
     const receiptString = req.body.receipt_string;
     if (!receiptString) {
-        console.warn('No receipt string provided in the request');
+        console.warn('resources.js: No receipt string provided in the request');
         return res.status(400).send('Receipt string is required');
     }
 
     try {
-        console.log('Attempting to verify Apple receipt');
+        console.log('resources.js: Attempting to verify Apple receipt');
         const receiptVerification = await verifyAppleReceipt(receiptString, true); // Assuming true for production
 
         if (!receiptVerification.isValid) {
-            console.warn('Apple receipt validation failed:', receiptVerification.error);
+            console.warn(`resources.js: Apple receipt validation failed: ${receiptVerification.error}`);
             return res.status(400).send('Invalid Apple receipt');
         }
 
-        console.log('Apple receipt validated successfully');
+        console.log('resources.js: Apple receipt validated successfully');
         const token = req.user.token;
         let newExpiry;
         let timeAdded = 0; // Default value
 
         if (receiptVerification.data.timeAdded > 0) {
             timeAdded = receiptVerification.data.timeAdded;
+            console.log(`resources.js: Time added from receipt: ${timeAdded}`);
+
             const currentExpiry = await getCurrentExpiry(req.user.accountNumber);
+            console.log(`resources.js: Current expiry fetched: ${currentExpiry}`);
+
             newExpiry = addTimeToExpiry(currentExpiry, timeAdded);
+            console.log(`resources.js: New expiry calculated: ${newExpiry}`);
 
             // Update account with new expiry
             const { error: updateError } = await supabase
@@ -44,17 +49,19 @@ router.post('/v1/create-apple-payment', authenticateWithToken, async (req, res) 
                 .eq('account_number', req.user.accountNumber);
 
             if (updateError) {
-                console.error('Error updating account with new expiry:', updateError.message);
+                console.error(`resources.js: Error updating account with new expiry: ${updateError.message}`);
                 return res.status(500).send('Failed to update account expiry');
             }
+            console.log('resources.js: Account expiry updated successfully in database');
         } else {
             newExpiry = await getCurrentExpiry(req.user.accountNumber);
+            console.log(`resources.js: No time added. Using current expiry: ${newExpiry}`);
         }
 
-        console.log(`Account updated successfully. Time added: ${timeAdded}, New expiry: ${newExpiry}`);
+        console.log(`resources.js: Account updated successfully. Time added: ${timeAdded}, New expiry: ${newExpiry}`);
         res.status(200).json({ timeAdded, newExpiry });
     } catch (error) {
-        console.error(`Error in /app/v1/create-apple-payment: ${error.message}`);
+        console.error(`resources.js: Error in /app/v1/create-apple-payment: ${error.message}`);
         res.status(500).send('Error while processing request');
     }
 });

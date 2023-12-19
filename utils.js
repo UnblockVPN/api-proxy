@@ -474,7 +474,7 @@ async function insertDevice(newUuid, accountNumber, pubkey, hijack_dns, name, ip
                 ipv4_address: ipv4_address,
                 ipv6_address: ipv6_address
             }])
-            .select('*'); 
+            .select(); 
 
         if (error) {
             console.error('Error inserting device:', error.message);
@@ -522,7 +522,7 @@ async function authenticateWithToken(req, res, next) {
 
         if (data && data.length > 0) {
             console.log(`utils.js: Token validated successfully. Account number: ${data[0].account_number}`);
-            req.user = { accountNumber: data[0].account_number };
+            req.user = { accountNumber: data[0].account_number,token: token  };
             next();
         } else {
             console.log('utils.js: Invalid token: No matching account found');

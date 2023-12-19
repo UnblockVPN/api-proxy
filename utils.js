@@ -25,13 +25,15 @@ async function getCurrentExpiry(accountNumber) {
     }
 
     const currentExpiry = data ? new Date(data.expiry) : new Date();
-    console.log(`utils.js: Current expiry for account ${accountNumber} is: ${currentExpiry}`);
-    return currentExpiry;
+    const formattedCurrentExpiry = currentExpiry.toISOString().split('.')[0] + '+00:00'; // Format as per requirement
+    console.log(`utils.js: Current expiry for account ${accountNumber} is: ${formattedCurrentExpiry}`);
+    return formattedCurrentExpiry;
 }
 
 function addTimeToExpiry(expiryDate, timeInSeconds) {
     console.log(`utils.js: Adding ${timeInSeconds} seconds to expiry date ${expiryDate}`);
-    const newExpiry = new Date(expiryDate.getTime() + timeInSeconds * 1000);
+    const expiryDateObject = new Date(expiryDate);
+    const newExpiry = new Date(expiryDateObject.getTime() + timeInSeconds * 1000);
     const formattedNewExpiry = newExpiry.toISOString().split('.')[0] + '+00:00'; // Format as per requirement
     console.log(`utils.js: New expiry date after addition is: ${formattedNewExpiry}`);
     return formattedNewExpiry;

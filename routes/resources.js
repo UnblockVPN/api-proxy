@@ -58,13 +58,15 @@ router.post('/v1/create-apple-payment', authenticateWithToken, async (req, res) 
             console.log(`resources.js: No time added. Using current expiry: ${newExpiry}`);
         }
 
-        console.log(`resources.js: Account updated successfully. Time added: ${timeAdded}, New expiry: ${newExpiry}`);
-        res.status(200).json({ timeAdded, newExpiry });
+        const jsonResponse = { timeAdded, newExpiry };
+        console.log(`resources.js: Sending response back to client: ${JSON.stringify(jsonResponse)}`);
+        res.status(200).json(jsonResponse);
     } catch (error) {
         console.error(`resources.js: Error in /app/v1/create-apple-payment: ${error.message}`);
         res.status(500).send('Error while processing request');
     }
 });
+
 
 
 

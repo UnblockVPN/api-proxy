@@ -114,66 +114,50 @@ async function redeemVoucher(accountNumber, durationInSeconds, voucherCode) {
             return null;
         }
 
+        // Calculate new expiry date and format it
         let newExpiry = new Date(accountData.expiry || new Date());
         newExpiry.setSeconds(newExpiry.getSeconds() + durationInSeconds);
-
-        // Format the date to match the required format "2023-12-13T11:12:50+00:00"
-        const formattedNewExpiry = newExpiry.toISOString();
+        const formattedNewExpiry = newExpiry.toISOString().replace(/\.\d{3}/, '');
 
         console.log(`utils.js: Fetched account details successfully for account: ${accountNumber}`);
 
-        try {
-            const { data: updatedAccountData, error: updatedAccountError } = await supabase
-                .from('accounts')
-                .update({ expiry: formattedNewExpiry })
-                .eq('account_number', accountNumber)
-                .select();
+        // Update account expiry
+        const { error: updatedAccountError } = await supabase
+            .from('accounts')
+            .update({ expiry: formattedNewExpiry })
+            .eq('account_number', accountNumber);
 
-            if (updatedAccountError) {
-                console.error(`utils.js: Error updating account expiry for account: ${accountNumber}, Error: ${JSON.stringify(updatedAccountError)}`);
-                return null;
-            }
-
-            if (!updatedAccountData) {
-                console.error(`utils.js: Account update did not return data for account: ${accountNumber}`);
-                return null;
-            }
-
-            console.log(`utils.js: Account expiry updated successfully for account: ${accountNumber}`);
-            
-            // Now, update the voucher information
-            const { data: updatedVoucherData, error: updatedVoucherError } = await supabase
-                .from('vouchers')
-                .update({
-                    is_used: true,
-                    associated_account: accountNumber,
-                    used_at: new Date().toISOString()
-                })
-                .eq('code', voucherCode)
-                .select();
-
-            if (updatedVoucherError) {
-                console.error(`utils.js: Error updating voucher for code: ${voucherCode}, Error: ${JSON.stringify(updatedVoucherError)}`);
-                return null;
-            }
-
-            if (!updatedVoucherData) {
-                console.error(`utils.js: Voucher update did not return data for code: ${voucherCode}`);
-                return null;
-            }
-
-            console.log(`utils.js: Voucher updated successfully for code: ${voucherCode}`);
-            
-            return { newExpiry: formattedNewExpiry };
-        } catch (updateError) {
-            console.error(`utils.js: Error occurred during account expiry or voucher update for account: ${accountNumber}, Error: ${updateError.message}`);
+        if (updatedAccountError) {
+            console.error(`utils.js: Error updating account expiry for account: ${accountNumber}, Error: ${JSON.stringify(updatedAccountError)}`);
             return null;
         }
+
+        console.log(`utils.js: Account expiry updated successfully for account: ${accountNumber}`);
+
+        // Update voucher as used
+        const { error: updatedVoucherError } = await supabase
+            .from('vouchers')
+            .update({
+                is_used: true,
+                associated_account: accountNumber,
+                used_at: new Date().toISOString().replace(/\.\d{3}/, '')
+            })
+            .eq('code', voucherCode);
+
+        if (updatedVoucherError) {
+            console.error(`utils.js: Error updating voucher for code: ${voucherCode}, Error: ${JSON.stringify(updatedVoucherError)}`);
+            return null;
+        }
+
+        console.log(`utils.js: Voucher updated successfully for code: ${voucherCode}`);
+        
+        return { newExpiry: formattedNewExpiry };
     } catch (error) {
         console.error(`utils.js: Exception occurred in redeemVoucher: ${error.message}`);
         return null;
     }
 }
+
 
 
 

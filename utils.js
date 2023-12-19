@@ -11,6 +11,37 @@ const fs = require('fs');
 const ip = require('ip');
 const axios = require('axios');
 
+// Function to read the current expiry from the accounts table
+async function getCurrentExpiry(accountNumber) {
+    const { data, error } = await supabase
+        .from('accounts')
+        .select('expiry')
+        .eq('account_number', accountNumber)
+        .single();
+
+    if (error) {
+        console.error(`Error fetching current expiry for account number ${accountNumber}:`, error.message);
+        throw error;
+    }
+
+    return data ? new Date(data.expiry) : null;
+}
+
+// Function to format dates in the required format
+function formatISODate(date) {
+    return date.toISOString().split('.')[0] + '+00:00';
+}
+
+// Function to add seconds to a date
+function addSecondsToDate(date, seconds) {
+    const result = new Date(date);
+    result.setSeconds(result.getSeconds() + seconds);
+    return result;
+}
+
+
+
+
 async function verifyAppleReceipt(receiptString, isProduction = true) {
     let endpoint = isProduction 
         ? 'https://buy.itunes.apple.com/verifyReceipt' 
@@ -530,6 +561,9 @@ module.exports = {
     authenticateWithToken,
     validateVoucher,
     redeemVoucher,
-    verifyAppleReceipt
+    verifyAppleReceipt,
+    getCurrentExpiry,
+    formatISODate,
+    addSecondsToDate
 };
 

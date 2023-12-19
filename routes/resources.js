@@ -3,57 +3,64 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const router = express.Router();
-const { validateVoucher, redeemVoucher, authenticateWithToken, verifyAppleReceipt} = require('../utils');
+const { getCurrentExpiry, formatISODate, addSecondsToDate, validateVoucher, redeemVoucher, authenticateWithToken, verifyAppleReceipt} = require('../utils');
 const { createClient } = require('@supabase/supabase-js');
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 router.post('/v1/create-apple-payment', authenticateWithToken, async (req, res) => {
-    console.log('resources.js: Received request to /app/v1/create-apple-payment');
+    console.log('Received request to /app/v1/create-apple-payment');
 
-    // Extracting the receipt data using the key 'receipt_string'
     const receiptString = req.body.receipt_string;
-
     if (!receiptString) {
-        console.warn('resources.js: No receipt string provided in the request');
+        console.warn('No receipt string provided in the request');
         return res.status(400).send('Receipt string is required');
     }
 
     try {
-        console.log('resources.js: Attempting to verify Apple receipt');
-        const receiptVerification = await verifyAppleReceipt(receiptString, true); // Assuming true for production
-
+        console.log('Attempting to verify Apple receipt');
+        const receiptVerification = await verifyAppleReceipt(receiptString, true); // Implement this function
         if (!receiptVerification.isValid) {
-            console.warn('resources.js: Apple receipt validation failed', receiptVerification.error);
+            console.warn('Apple receipt validation failed', receiptVerification.error);
             return res.status(400).send('Invalid Apple receipt');
         }
 
-        console.log('resources.js: Apple receipt validated successfully. Proceeding to update account');
+        console.log('Apple receipt validated successfully');
+        const accountNumber = req.user.accountNumber; // Extracted from token
+        const currentExpiry = await getCurrentExpiry(accountNumber);
+        let newExpiry;
 
-        const token = req.user.token; // Extracted by authenticateWithToken middleware
-        const truncatedReceipt = receiptString.substring(0, 50) + '...'; // Truncate the receipt string for storage
-
-        const { error: accountError } = await supabase
-            .from('accounts')
-            .update({ 
-                apple_receipt: truncatedReceipt, 
-                apple_api_response: JSON.stringify(receiptVerification.data) // Store the full Apple response
-            })
-            .eq('cryptotoken', token);
-
-        if (accountError) {
-            console.error('resources.js: Error updating account with Apple receipt and API response:', accountError.message);
-            return res.status(500).send('Failed to update account with receipt and API response');
+        if (receiptVerification.data.timeAdded > 0) {
+            console.log(`Time added from receipt: ${receiptVerification.data.timeAdded} seconds`);
+            newExpiry = addSecondsToDate(currentExpiry, receiptVerification.data.timeAdded);
+        } else {
+            console.log('No additional time added from receipt');
+            newExpiry = currentExpiry;
         }
 
-        console.log('resources.js: Account updated successfully with Apple receipt and API response');
-        res.status(200).send('Apple receipt and API response stored successfully');
+        const formattedNewExpiry = formatISODate(newExpiry);
+        console.log(`Updated expiry date: ${formattedNewExpiry}`);
+
+        // Update account expiry in the database
+        const { error: updateError } = await supabase
+            .from('accounts')
+            .update({ expiry: formattedNewExpiry })
+            .eq('account_number', accountNumber);
+
+        if (updateError) {
+            console.error('Error updating account expiry:', updateError.message);
+            return res.status(500).send('Failed to update account expiry');
+        }
+
+        console.log('Account expiry updated successfully');
+        res.status(200).json({ newExpiry: formattedNewExpiry });
     } catch (error) {
-        console.error(`resources.js: Error in POST /app/v1/create-apple-payment: ${error.message}`);
+        console.error(`Error processing create-apple-payment request: ${error.message}`);
         res.status(500).send('Error while processing request');
     }
 });
+
 
 
 
@@ -178,3 +185,6 @@ router.post('/v1/www-auth-token', (req, res) => {
 
 
 module.exports = router;
+
+
+

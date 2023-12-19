@@ -11,7 +11,6 @@ const fs = require('fs');
 const ip = require('ip');
 const axios = require('axios');
 
-// Function to read the current expiry from the accounts table
 async function getCurrentExpiry(accountNumber) {
     const { data, error } = await supabase
         .from('accounts')
@@ -20,23 +19,16 @@ async function getCurrentExpiry(accountNumber) {
         .single();
 
     if (error) {
-        console.error(`Error fetching current expiry for account number ${accountNumber}:`, error.message);
+        console.error(`Error fetching current expiry for account ${accountNumber}: ${error.message}`);
         throw error;
     }
 
-    return data ? new Date(data.expiry) : null;
+    return data ? new Date(data.expiry) : new Date();
 }
 
-// Function to format dates in the required format
-function formatISODate(date) {
-    return date.toISOString().split('.')[0] + '+00:00';
-}
-
-// Function to add seconds to a date
-function addSecondsToDate(date, seconds) {
-    const result = new Date(date);
-    result.setSeconds(result.getSeconds() + seconds);
-    return result;
+function addTimeToExpiry(expiryDate, timeInSeconds) {
+    const newExpiry = new Date(expiryDate.getTime() + timeInSeconds * 1000);
+    return newExpiry.toISOString().split('.')[0] + '+00:00'; // Format as per requirement
 }
 
 
@@ -563,7 +555,6 @@ module.exports = {
     redeemVoucher,
     verifyAppleReceipt,
     getCurrentExpiry,
-    formatISODate,
-    addSecondsToDate
+    addTimeToExpiry
 };
 

@@ -9,6 +9,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const { formatDate, getRandomFunnyWords, authenticateWithToken, checkMaxDevicesReached, allocateIpV4Address, generateAccountNumber, insertAccount , insertDevice, checkAccountExists } = require('../utils');
 
 
+// POST /accounts/v1/accounts
 router.post('/v1/accounts', async (req, res) => {
     try {
         let accountNumber, accountExists;
@@ -24,10 +25,23 @@ router.post('/v1/accounts', async (req, res) => {
         const account = await insertAccount(accountNumber);
         console.log(`accounts.js: Inserted account data:`, account);
 
+        // Generate a new unique UUID for the device
+        const newUuid = uuidv4(); 
+        console.log(`accounts.js: Generated UUID for device: ${newUuid}`);
+
+        // Set the expiry timestamp to 1 hour from now
+        const expiryTimestamp = new Date();
+        expiryTimestamp.setHours(expiryTimestamp.getHours() + 1);
+        const formattedExpiry = expiryTimestamp.toISOString().split('.')[0] + '+00:00';
+
         const response = {
-            number: accountNumber,
+            id: newUuid,
+            expiry: formattedExpiry,
+            max_ports: 0,
+            can_add_ports: false,
             max_devices: 5,
-            can_add_devices: true
+            can_add_devices: true,
+            number: accountNumber
         };
         console.log(`accounts.js: Sending response:`, response);
         res.status(201).json(response);
@@ -36,6 +50,7 @@ router.post('/v1/accounts', async (req, res) => {
         res.status(500).send('accounts.js: Error while processing request');
     }
 });
+
 
 
 

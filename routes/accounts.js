@@ -163,20 +163,7 @@ router.get('/v1/accounts/me', authenticateWithToken, async (req, res) => {
     try {
         console.log('accounts.js: Received GET request for /accounts/v1/accounts/me');
         const accountNumber = req.user.accountNumber;
-        const deviceId = req.user.deviceId; // Assuming you have a way to identify the device
         console.log(`accounts.js: Account number from token: ${accountNumber}`);
-
-        // Update last_active in the devices table
-        const updateResult = await supabase
-            .from('devices')
-            .update({ last_active: new Date().toISOString() })
-            .eq('account_number', accountNumber)
-            .eq('id', deviceId);
-
-        if (updateResult.error) {
-            console.error('accounts.js: Error updating last_active for device:', updateResult.error.message);
-            // Decide whether to continue or return an error response here
-        }
 
         const { data, error } = await supabase
             .from('accounts')

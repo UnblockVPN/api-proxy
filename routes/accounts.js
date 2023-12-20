@@ -9,7 +9,6 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const { formatDate, getRandomFunnyWords, authenticateWithToken, checkMaxDevicesReached, allocateIpV4Address, generateAccountNumber, insertAccount , insertDevice, checkAccountExists } = require('../utils');
 
 
-// POST /accounts/v1/accounts
 router.post('/v1/accounts', async (req, res) => {
     try {
         let accountNumber, accountExists;
@@ -24,19 +23,11 @@ router.post('/v1/accounts', async (req, res) => {
         console.log(`accounts.js: Attempting to insert account with number: ${accountNumber}`);
         const account = await insertAccount(accountNumber);
         console.log(`accounts.js: Inserted account data:`, account);
-        const newUuid = uuidv4(); // Generate a new unique UUID for the device
-        console.log(`accounts.js: Generated UUID for device: ${newUuid}`);
-        console.log(`accounts.js: Attempting to insert device with ID: ${newUuid} for account: ${accountNumber}`);
-        await insertDevice(newUuid, accountNumber);
-        console.log(`accounts.js: Inserted device for account number ${accountNumber}`);
+
         const response = {
-            id: newUuid,
-            expiry: formatDate(new Date()),
-            max_ports: 0,
-            can_add_ports: false,
+            number: accountNumber,
             max_devices: 5,
-            can_add_devices: true,
-            number: accountNumber
+            can_add_devices: true
         };
         console.log(`accounts.js: Sending response:`, response);
         res.status(201).json(response);

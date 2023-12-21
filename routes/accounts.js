@@ -21,18 +21,18 @@ router.post('/v1/accounts', async (req, res) => {
             console.log(`accounts.js: Account exists: ${accountExists}`);
         } while (accountExists);
 
-        console.log(`accounts.js: Attempting to insert account with number: ${accountNumber}`);
-        const account = await insertAccount(accountNumber);
-        console.log(`accounts.js: Inserted account data:`, account);
-
         // Generate a new unique UUID for the device
         const newUuid = uuidv4(); 
         console.log(`accounts.js: Generated UUID for device: ${newUuid}`);
 
-        // Set the expiry timestamp to 4 hour from now
+        // Set the expiry timestamp to 4 hours from now
         const expiryTimestamp = new Date();
         expiryTimestamp.setHours(expiryTimestamp.getHours() + 4);
         const formattedExpiry = expiryTimestamp.toISOString().split('.')[0] + '+00:00';
+
+        console.log(`accounts.js: Attempting to insert account with number: ${accountNumber} and expiry: ${formattedExpiry}`);
+        const account = await insertAccount(accountNumber, formattedExpiry);
+        console.log(`accounts.js: Inserted account data:`, account);
 
         const response = {
             id: newUuid,
@@ -50,6 +50,7 @@ router.post('/v1/accounts', async (req, res) => {
         res.status(500).send('accounts.js: Error while processing request');
     }
 });
+
 
 
 

@@ -29,9 +29,9 @@ router.post('/v1/accounts', async (req, res) => {
         const newUuid = uuidv4(); 
         console.log(`accounts.js: Generated UUID for device: ${newUuid}`);
 
-        // Set the expiry timestamp to 1 hour from now
+        // Set the expiry timestamp to 4 hour from now
         const expiryTimestamp = new Date();
-        expiryTimestamp.setHours(expiryTimestamp.getHours() + 1);
+        expiryTimestamp.setHours(expiryTimestamp.getHours() + 4);
         const formattedExpiry = expiryTimestamp.toISOString().split('.')[0] + '+00:00';
 
         const response = {

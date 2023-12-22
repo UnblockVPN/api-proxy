@@ -129,7 +129,53 @@ router.post('/v1/devices', authenticateWithToken, async (req, res) => {
 
 
 
+// DELETE /accounts/v1/devices/:id
+router.delete('/v1/devices/:id', authenticateWithToken, async (req, res) => {
+    const deviceId = req.params.id;
+    console.log(`Received request to delete device with ID: ${deviceId}`);
 
+    try {
+        // Check if the device exists in Supabase
+        const { data, error } = await supabase
+            .from('devices')
+            .select('pubkey, ipv4_address')
+            .eq('id', deviceId)
+            .single();
+
+        if (error) {
+            console.error(`Error fetching device: ${error.message}`);
+            return res.status(500).send('Error fetching device details');
+        }
+
+        if (!data) {
+            console.log(`Device with ID ${deviceId} not found`);
+            return res.status(404).send('Device not found');
+        }
+
+        // Emit delete event with pubkey and IP address
+        utilsEmitter.emit('delete', { pubkey: data.pubkey, ipv4_address: data.ipv4_address });
+        console.log(`Emitting delete event for device ${deviceId}`);
+
+        // Send response back to client early
+        res.status(200).send('Device deletion initiated');
+
+        // Proceed to delete the device from the database
+        const deleteResponse = await supabase
+            .from('devices')
+            .delete()
+            .match({ id: deviceId });
+
+        if (deleteResponse.error) {
+            console.error(`Error deleting device: ${deleteResponse.error.message}`);
+            // Handle delete error (note: client has already received a response)
+        }
+
+        console.log(`Device with ID ${deviceId} deleted successfully`);
+    } catch (error) {
+        console.error(`Error in DELETE /accounts/v1/devices/${deviceId}: ${error.message}`);
+        // Note: Depending on when the error occurs, the client may have already received a response
+    }
+});
 
 
 // GET /accounts/v1/devices/:id
@@ -157,6 +203,11 @@ router.get('/v1/devices/:id', async (req, res) => {
         res.status(500).send(`Error retrieving device with ID: ${deviceId}`);
     }
 });
+
+
+
+
+
 
 
 // GET /accounts/v1/accounts/me

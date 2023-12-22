@@ -132,7 +132,7 @@ router.post('/v1/devices', authenticateWithToken, async (req, res) => {
 // DELETE /accounts/v1/devices/:id
 router.delete('/v1/devices/:id', async (req, res) => {
     const deviceId = req.params.id;
-    logger.debug(`Received delete request for device with ID: ${deviceId}`);
+    console.log(`Received delete request for device with ID: ${deviceId}`);
 
     try {
         // Fetch device details for emitting the event
@@ -144,16 +144,16 @@ router.delete('/v1/devices/:id', async (req, res) => {
 
         if (fetchError || !deviceData) {
             if (fetchError) {
-                logger.error(`Error fetching device for delete event: ${fetchError.message}`);
+                console.error(`Error fetching device for delete event: ${fetchError.message}`);
             } else {
-                logger.error(`Error fetching device for delete event: Unknown error`);
+                console.error('Error fetching device for delete event: Device not found');
             }
             return res.status(404).json(false);
         }
 
         // Emit the delete event
         emitDeleteDeviceEvent(deviceData.pubkey, deviceData.ipv4_address);
-        logger.debug(`Delete event emitted for device ID: ${deviceId}`);
+        console.log(`Delete event emitted for device ID: ${deviceId}`);
 
         // Respond early to the client
         res.status(200).json(true);
@@ -165,17 +165,18 @@ router.delete('/v1/devices/:id', async (req, res) => {
             .match({ id: deviceId });
 
         if (deleteError) {
-            logger.error(`Error deleting device: ${deleteError.message}`);
+            console.error(`Error deleting device: ${deleteError.message}`);
             // Handle deletion error (optional, as response is already sent)
         }
 
-        logger.debug(`Device with ID ${deviceId} deleted successfully.`);
+        console.log(`Device with ID ${deviceId} deleted successfully.`);
 
     } catch (error) {
-        logger.error(`Server error in DELETE /accounts/v1/devices/${deviceId}: ${error.message}`);
+        console.error(`Server error in DELETE /accounts/v1/devices/${deviceId}: ${error.message}`);
         // Note: Response already sent, handling error internally
     }
 });
+
 
 
 

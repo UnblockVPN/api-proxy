@@ -143,7 +143,11 @@ router.delete('/v1/devices/:id', async (req, res) => {
             .maybeSingle();
 
         if (fetchError || !deviceData) {
-            logger.error(`Error fetching device for delete event: ${fetchError?.message}`);
+            if (fetchError) {
+                logger.error(`Error fetching device for delete event: ${fetchError.message}`);
+            } else {
+                logger.error(`Error fetching device for delete event: Unknown error`);
+            }
             return res.status(404).json(false);
         }
 

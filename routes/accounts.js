@@ -130,52 +130,49 @@ router.post('/v1/devices', authenticateWithToken, async (req, res) => {
 
 
 // DELETE /accounts/v1/devices/:id
-router.delete('/v1/devices/:id', authenticateWithToken, async (req, res) => {
+router.delete('/v1/devices/:id', async (req, res) => {
     const deviceId = req.params.id;
-    console.log(`Received request to delete device with ID: ${deviceId}`);
+    logger.debug(`Received delete request for device with ID: ${deviceId}`);
 
     try {
-        // Check if the device exists in Supabase
-        const { data, error } = await supabase
+        // Fetch device details for emitting the event
+        const { data: deviceData, error: fetchError } = await supabase
             .from('devices')
             .select('pubkey, ipv4_address')
             .eq('id', deviceId)
-            .single();
+            .maybeSingle();
 
-        if (error) {
-            console.error(`Error fetching device: ${error.message}`);
-            return res.status(500).send('Error fetching device details');
+        if (fetchError || !deviceData) {
+            logger.error(`Error fetching device for delete event: ${fetchError?.message}`);
+            return res.status(404).json(false);
         }
 
-        if (!data) {
-            console.log(`Device with ID ${deviceId} not found`);
-            return res.status(404).send('Device not found');
-        }
+        // Emit the delete event
+        emitDeleteDeviceEvent(deviceData.pubkey, deviceData.ipv4_address);
+        logger.debug(`Delete event emitted for device ID: ${deviceId}`);
 
-        // Emit delete event with pubkey and IP address
-        utilsEmitter.emit('delete', { pubkey: data.pubkey, ipv4_address: data.ipv4_address });
-        console.log(`Emitting delete event for device ${deviceId}`);
+        // Respond early to the client
+        res.status(200).json(true);
 
-        // Send response back to client early
-        res.status(200).send('Device deletion initiated');
-
-        // Proceed to delete the device from the database
-        const deleteResponse = await supabase
+        // Proceed with device deletion
+        const { error: deleteError } = await supabase
             .from('devices')
             .delete()
             .match({ id: deviceId });
 
-        if (deleteResponse.error) {
-            console.error(`Error deleting device: ${deleteResponse.error.message}`);
-            // Handle delete error (note: client has already received a response)
+        if (deleteError) {
+            logger.error(`Error deleting device: ${deleteError.message}`);
+            // Handle deletion error (optional, as response is already sent)
         }
 
-        console.log(`Device with ID ${deviceId} deleted successfully`);
+        logger.debug(`Device with ID ${deviceId} deleted successfully.`);
+
     } catch (error) {
-        console.error(`Error in DELETE /accounts/v1/devices/${deviceId}: ${error.message}`);
-        // Note: Depending on when the error occurs, the client may have already received a response
+        logger.error(`Server error in DELETE /accounts/v1/devices/${deviceId}: ${error.message}`);
+        // Note: Response already sent, handling error internally
     }
 });
+
 
 
 // GET /accounts/v1/devices/:id

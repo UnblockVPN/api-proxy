@@ -538,6 +538,11 @@ async function authenticateWithToken(req, res, next) {
 
 
 
+// Emit delete-device event
+function emitDeleteDeviceEvent(pubkey, ipv4_address) {
+    console.log(`Emitting delete-device event for pubkey: ${pubkey}, IPv4: ${ipv4_address}`);
+    utilsEmitter.emit('delete-device', { pubkey, ipv4_address });
+}
 
 
 
@@ -562,6 +567,7 @@ module.exports = {
     redeemVoucher,
     verifyAppleReceipt,
     getCurrentExpiry,
-    addTimeToExpiry
+    addTimeToExpiry,
+    emitDeleteDeviceEvent
 };
 

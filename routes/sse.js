@@ -1,24 +1,15 @@
 // sse.js
 const express = require('express');
 const router = express.Router();
-const { createClient } = require('@supabase/supabase-js');
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
 const { utilsEmitter } = require('../utils');
+const dbManager = require('../databaseManager'); // Importing the database manager
 
 // SSE endpoint
 router.get('/events', (req, res) => {
     const clientIP = req.ip;
-    
-    // Check if the connection is from localhost (127.0.0.1 or ::1)
-    if (clientIP === '127.0.0.1' || clientIP === '::1') {
-        console.log(`SSE connection from localhost (${clientIP}) blocked.`);
-        //res.status(403).end(); // Return a forbidden status to block the connection
-        return;
-    }
+    console.log(`SSE connection attempt from IP: ${clientIP}`);
 
-    console.log(`SSE connection established from IP: ${clientIP}`);
+    // Set headers for SSE
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
@@ -30,29 +21,34 @@ router.get('/events', (req, res) => {
 
     utilsEmitter.on('update', onInternalEvent);
 
-    const channel = supabase
+    // Subscribe to Supabase Realtime changes
+    const channel = dbManager.supabase
         .channel('public-devices')
         .on(
             'postgres_changes',
             { event: '*', schema: 'public', table: 'sse_updates' },
             (payload) => {
+                console.log(`Received update from Supabase: ${JSON.stringify(payload)}`);
                 utilsEmitter.emit('update', { type: payload.eventType, data: payload.new });
             }
         )
         .subscribe((error) => {
             if (error) {
                 console.error('Error subscribing to Supabase channel:', error);
-                // Handle the error as needed
+            } else {
+                console.log('Successfully subscribed to Supabase channel.');
             }
         });
 
+    // Handle client disconnection
     req.on('close', () => {
-        console.log('Client disconnected from SSE');
+        console.log(`SSE connection closed by client: ${clientIP}`);
         utilsEmitter.off('update', onInternalEvent);
         channel.unsubscribe().catch((error) => {
-            console.error('Error during unsubscription:', error.message);
+            console.error('Error unsubscribing from Supabase channel:', error.message);
         });
     });
 });
 
 module.exports = router;
+

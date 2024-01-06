@@ -10,7 +10,7 @@ let heartbeatInterval;
 
 function checkDatabaseHealth() {
     supabase
-        .from('your_table')
+        .from('accounts')
         .select('id')
         .limit(1)
         .then(() => {

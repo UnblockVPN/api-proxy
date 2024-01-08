@@ -23,7 +23,7 @@ function generateRandomVoucherCode() {
   async function insertVoucherCodes() {
     try {
       const voucherCodes = [];
-      const numberOfCodesToGenerate = 10; // Change this to the desired number of codes
+      const numberOfCodesToGenerate = 10000; // Change this to the desired number of codes
   
       for (let i = 0; i < numberOfCodesToGenerate; i++) {
         const voucherCode = generateRandomVoucherCode();

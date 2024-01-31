@@ -42,7 +42,7 @@ router.get('/events', (req, res) => {
 
     // Handle client disconnection
     req.on('close', () => {
-        console.log(`SSE connection closed by client: ${clientIP}`);
+        //console.log(`SSE connection closed by client: ${clientIP}`);
         utilsEmitter.off('update', onInternalEvent);
         channel.unsubscribe().catch((error) => {
             console.error('Error unsubscribing from Supabase channel:', error.message);

@@ -7,7 +7,7 @@ const dbManager = require('../databaseManager'); // Importing the database manag
 // SSE endpoint
 router.get('/events', (req, res) => {
     const clientIP = req.ip;
-    console.log(`SSE connection attempt from IP: ${clientIP}`);
+    //console.log(`SSE connection attempt from IP: ${clientIP}`);
 
     // Set headers for SSE
     res.setHeader('Content-Type', 'text/event-stream');

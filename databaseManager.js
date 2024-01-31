@@ -14,10 +14,10 @@ function checkDatabaseHealth() {
         .select('id')
         .limit(1)
         .then(() => {
-            console.log('Database is responsive');
+            console.log('Supabase is responsive');
         })
         .catch((error) => {
-            console.error('Database check failed:', error.message);
+            console.error('Supabase check failed:', error.message);
             clearInterval(heartbeatInterval);
             startReconnectProcess();
         });
@@ -26,11 +26,11 @@ function checkDatabaseHealth() {
 function startReconnectProcess() {
     reconnectToDatabase()
         .then(() => {
-            console.log('Reconnected to database successfully');
+            console.log('Reconnected to Supabase successfully');
             resetReconnectLogic();
         })
         .catch(() => {
-            console.log(`Reconnect attempt failed, retrying in ${reconnectDelay} ms`);
+            console.log(`Supabase Reconnect attempt failed, retrying in ${reconnectDelay} ms`);
             setTimeout(startReconnectProcess, reconnectDelay);
             reconnectDelay = Math.min(reconnectDelay * 2, maxReconnectDelay);
         });
@@ -41,7 +41,7 @@ function reconnectToDatabase() {
         try {
             // Reinitialize the Supabase client
             supabase = createClient(supabaseUrl, supabaseKey);
-            console.log('Attempting to reconnect to the database...');
+            console.log('Attempting to reconnect to the Supabase...');
             // Perform a test query to ensure connectivity
             supabase
                 .from('accounts')

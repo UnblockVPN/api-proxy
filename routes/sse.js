@@ -34,7 +34,7 @@ router.get('/events', (req, res) => {
         )
         .subscribe((error) => {
             if (error) {
-                console.error('Error subscribing to Supabase channel:', error);
+                //console.error('Error subscribing to Supabase channel:', error);
             } else {
                 console.log('Successfully subscribed to Supabase channel.');
             }

@@ -9,6 +9,7 @@ const authRouter = require('./routes/auth');
 const sseRouter = require('./routes/sse');
 const accountsRouter = require('./routes/accounts');
 const resourcesRouter = require('./routes/resources');
+const checkIPRouter = require('./routes/check-ip');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -26,6 +27,7 @@ app.use('/auth', authRouter);
 app.use('/accounts', accountsRouter);
 app.use('/app', resourcesRouter);
 app.use('/sse', sseRouter);
+app.use('/check-ip', checkIPRouter);
 app.use((req, res) => {// Response for unimplemented routes
     res.status(501).send('API route does not exist');
 });

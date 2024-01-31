@@ -1,3 +1,4 @@
+// sse.js
 const express = require('express');
 const router = express.Router();
 const { utilsEmitter } = require('../utils');
@@ -6,7 +7,8 @@ const dbManager = require('../databaseManager'); // Importing the database manag
 // SSE endpoint
 router.get('/events', (req, res) => {
     const clientIP = req.ip;
-    
+    //console.log(`SSE connection attempt from IP: ${clientIP}`);
+
     // Set headers for SSE
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
@@ -24,24 +26,15 @@ router.get('/events', (req, res) => {
         .channel('public-devices')
         .on(
             'postgres_changes',
-            { schema: 'public', table: 'sse_updates' },
+            { event: '*', schema: 'public', table: 'sse_updates' },
             (payload) => {
                 console.log(`Received update from Supabase: ${JSON.stringify(payload)}`);
-
-                // Check the event type and emit accordingly
-                if (payload.eventType === 'INSERT') {
-                    utilsEmitter.emit('update', { type: 'INSERT', data: payload.new });
-                } else if (payload.eventType === 'UPDATE') {
-                    utilsEmitter.emit('update', { type: 'UPDATE', data: payload.new });
-                } else if (payload.eventType === 'DELETE') {
-                    utilsEmitter.emit('update', { type: 'DELETE', data: payload.old });
-                }
+                utilsEmitter.emit('update', { type: payload.eventType, data: payload.new });
             }
         )
         .subscribe((error) => {
             if (error) {
-                // Handle subscription error if needed
-            //    console.error('Error subscribing to Supabase channel:', error);
+                //console.error('Error subscribing to Supabase channel:', error);
             } else {
                 console.log('Successfully subscribed to Supabase channel.');
             }
@@ -49,7 +42,7 @@ router.get('/events', (req, res) => {
 
     // Handle client disconnection
     req.on('close', () => {
-        // Clean up event listeners and unsubscribe from Supabase channel
+        //console.log(`SSE connection closed by client: ${clientIP}`);
         utilsEmitter.off('update', onInternalEvent);
         channel.unsubscribe().catch((error) => {
             console.error('Error unsubscribing from Supabase channel:', error.message);
@@ -58,3 +51,4 @@ router.get('/events', (req, res) => {
 });
 
 module.exports = router;
+
